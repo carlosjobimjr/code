@@ -1,0 +1,276 @@
+<html>
+{%extends 'EnergyCapture/base.html'%}
+{% load energy_capture %}
+
+{%block title%}Overview Hierarchy Page{%endblock%}
+
+{%block content%}
+{%load tag_extras%}
+<style>
+		body{
+		margin-bottom: 100px;
+		
+	}
+	
+	.graphs{
+		width: 45%;
+		display: block;	
+		text-align: center;
+		margin: 0 auto;
+		margin-top: 30px;
+		margin-right: 27.5%; /*get rid after showcase*/ 
+	
+	}	
+	
+	.backlinkContainer{
+		margin-bottom: 20px;
+	}	
+	
+	#backNav{
+		border: 1pt solid gainsboro;
+		border-radius: 15px;
+		text-decoration: none;
+		padding: 15px;
+		background-color: white;
+		color: #045a81;
+		margin-left: 2%;
+		float: left;
+	}
+
+	#backNav:hover{
+		text-decoration: none;
+		color: #2596be;	
+	}
+
+	.zone-circle{
+		bottom: 130px;
+		width: 80px;
+		left: 270px;
+	}
+
+	.siteMap{
+		display: inline-block;
+	}
+</style>
+
+{%load static%}
+
+<body style="scroll-behavior: smooth;">
+    <center>
+        <div style="min-height:600px; width:80%; text-align:center" class="overflow-y-none p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700 overflow-x-scroll w-full">
+            <h3 class="text-xs text-gray-700 uppercase" style="border-bottom: 1pt solid black"><strong>Hierarchy Overview</strong></h3>
+            <div class="text-xl text-gray-700 uppercase font-extrabold" style="margin-top: 10px;">Company Expenditure</div>
+            <center>
+                <a style="width:20%;" href="/EnergyCapture/energyCaptureDashboard/">
+                    <div style="width:300px; margin-top:10px" class="p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700 hover:bg-sky-200">
+                        <h3 class="text-m text-gray-700 uppercase" style="border-bottom: 1pt solid black"><strong>Airborne</strong></h3>
+                        <p class="align-middle mb-2 text-2xl font-extrabold">1.595 kWh</p>
+                        <svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:30px; height:30px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+                        </svg>
+                        <p style="display:inline;" class="text-red-700">0.0%</p>
+                        <div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+                    </div>
+                </a>
+            </center>
+
+            <div style="grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 15px;" class="grid p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+                <!-- Column Headers -->
+                <div class="text-xl text-gray-700 uppercase font-extrabold">Distribution Boards</div>
+                <div class="text-xl text-gray-700 uppercase font-extrabold">Equipment</div>
+                <div class="text-xl text-gray-700 uppercase font-extrabold">Power Clamps</div>
+                
+                <!-- Board 5a Section -->
+                <div style="align-content: center; margin-top: 15px; border-top: rgb(201, 201, 201) 1pt solid;">
+                    <div style="grid-template-columns: repeat(1, minmax(0, 1fr));" class="grid p-4">
+                        <div>
+                            <p class="align-middle mb-2 text-xl font-extrabold">Board 5a: 0.128 kWh</p>
+                            <svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:30px; height:30px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+                            </svg>
+                            <p style="display:inline;" class="text-red-700">0.0%</p>
+                        </div>
+                    </div>
+                </div>
+<!-- Equipment for Board 5a -->
+<div style="align-content: center; margin-top: 15px; border-top: rgb(201, 201, 201) 1pt solid;">
+	<div style="grid-template-columns: repeat(1, minmax(0, 1fr));" class="grid p-4">
+		<div>
+			<p class="mb-2 text-xl font-extrabold">Zund Ply Cutter: 0.128 kWh</p>
+			<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+			</svg>
+			<p style="display:inline;" class="text-red-700">0.0%</p>
+			<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+		</div>
+	</div>
+</div>
+
+<!-- Power Clamp for Board 5a -->
+<div style="align-content: center; margin-top: 15px; border-top: rgb(201, 201, 201) 1pt solid;">
+	<div style="grid-template-columns: repeat(1, minmax(0, 1fr));" class="grid p-4">
+		<div>
+			<p class="mb-2 text-xl font-extrabold">Ply Cutter Clamp: 0.128 kWh</p>
+			<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+			</svg>
+			<p style="display:inline;" class="text-red-700">0.0%</p>
+			<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+		</div>
+	</div>
+</div>
+
+<!-- Board 6a Section -->
+<div style="align-content: center; margin-top: 15px; border-top: rgb(201, 201, 201) 1pt solid;">
+	<div style="grid-template-columns: repeat(1, minmax(0, 1fr));" class="grid p-4">
+		<div>
+			<p class="align-middle mb-2 text-xl font-extrabold">Board 6a: 0.960 kWh</p>
+			<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:30px; height:30px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+			</svg>
+			<p style="display:inline;" class="text-red-700">0.0%</p>
+			<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+		</div>
+	</div>
+</div>
+
+				<!-- Equipment for Board 6a -->
+				<div style="align-content: center; margin-top: 15px; border-top: rgb(201, 201, 201) 1pt solid;">
+					<div style="grid-template-columns: repeat(1, minmax(0, 1fr));" class="grid p-4">
+						<div>
+							<p class="mb-2 text-xl font-extrabold">36 Piston Press: 0.350 kWh</p>
+							<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+							</svg>
+							<p style="display:inline;" class="test-xs text-red-700">0.0%</p>
+							<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+
+						</div>
+					</div>
+
+					<div style="grid-template-columns: repeat(1, minmax(0, 1fr));" class="grid p-4">
+						<div>
+							<p class="mb-2 text-xl font-extrabold">KUKA Robot: 0.222 kWh</p>
+							<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+							</svg>
+							<p style="display:inline;" class="test-xs text-red-700">0.0%</p>
+							<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+
+						</div>
+					</div>
+
+					<div style="grid-template-columns: repeat(1, minmax(0, 1fr));" class="grid p-4">
+						<div>
+							<p class="mb-2 text-xl font-extrabold">Welding Table: 0.244 kWh</p>
+							<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+							</svg>
+							<p style="display:inline;" class="test-xs text-red-700">0.0%</p>
+							<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+
+						</div>
+					</div>
+
+					<div style="grid-template-columns: repeat(1, minmax(0, 1fr));" class="grid p-4">
+						<div>
+							<p class="mb-2 text-xl font-extrabold">Carrier Motors: 0.144 kWh</p>
+							<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+							</svg>
+							<p style="display:inline;" class="test-xs text-red-700">0.0%</p>
+							<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+
+						</div>
+					</div>
+				</div>
+<!-- Power Clamps for Board 6a -->
+<div style="align-content: center; margin-top: 15px; border-top: rgb(201, 201, 201) 1pt solid;">
+	<!-- KUKA Clamp -->
+	<div style="grid-template-columns: repeat(1, minmax(0, 1fr));" class="grid p-4">
+		<div>
+			<p class="mb-2 text-xl font-extrabold">KUKA Clamp: 0.610 kWh</p>
+			<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+			</svg>
+			<p style="display:inline;" class="text-red-700">0.0%</p>
+			<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+		</div>
+	</div>
+</div>
+<!-- Indirect Energy Section -->
+<div class="text-xl text-gray-700 uppercase font-extrabold" style="margin-top: 30px; grid-column: span 3;">Indirect Energy</div>
+
+<!-- Distribution Board Column -->
+<div style="align-content: center; margin-top: 15px; border-top: rgb(201, 201, 201) 1pt solid;">
+	<div class="grid p-4">
+		<div>
+			<p class="align-middle mb-2 text-xl font-extrabold">Compressor: 0.857 kWh</p>
+			<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:30px; height:30px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+			</svg>
+			<p style="display:inline;" class="text-red-700">0.0%</p>
+			<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+		</div>
+	</div>
+</div>
+
+<!-- Equipment Column -->
+<div style="align-content: center; margin-top: 15px; border-top: rgb(201, 201, 201) 1pt solid;">
+	<!-- KUKA Robot for Compressor -->
+	<div class="grid p-4">
+		<div>
+			<p class="mb-2 text-xl font-extrabold">KUKA Robot: 0.316 kWh</p>
+			<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+			</svg>
+			<p style="display:inline;" class="text-red-700">0.0%</p>
+			<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+		</div>
+	</div>
+
+	<!-- Welding Table for Compressor -->
+	<div class="grid p-4">
+		<div>
+			<p class="mb-2 text-xl font-extrabold">Welding Table: 0.416 kWh</p>
+			<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+			</svg>
+			<p style="display:inline;" class="text-red-700">0.0%</p>
+			<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+		</div>
+	</div>
+
+	<!-- 36 Piston Press for Compressor -->
+	<div class="grid p-4">
+		<div>
+			<p class="mb-2 text-xl font-extrabold">36 Piston Press: 0.125 kWh</p>
+			<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+			</svg>
+			<p style="display:inline;" class="text-red-700">0.0%</p>
+			<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+		</div>
+	</div>
+</div>
+
+<!-- Power Clamp Column -->
+<div style="align-content: center; margin-top: 15px; border-top: rgb(201, 201, 201) 1pt solid;">
+	<div class="grid p-4">
+		<div>
+			<p class="mb-2 text-xl font-extrabold">Compressor Clamp: 0.857 kWh</p>
+			<svg class="text-xs text-red-700" style="display:inline; margin-bottom:5px; width:20px; height:20px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+			</svg>
+			<p style="display:inline;" class="text-red-700">0.0%</p>
+			<div style="display:inline" class="mb-3 font-normal text-gray-500">for last hour</div>
+		</div>
+	</div>
+</div>
+</div>
+</div>
+</center>
+</body>
+						
+{%endblock%}
+</html>

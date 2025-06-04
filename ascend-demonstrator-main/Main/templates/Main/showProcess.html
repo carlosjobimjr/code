@@ -1,0 +1,3170 @@
+{% extends 'Main/base.html' %}
+
+{% load string_custom_filters %}
+{% load custom_filters %}
+
+{% block title %}Sub Process Page{% endblock %}
+
+{% block pageTitle %}Sub Process Page{% endblock %}
+
+{% block content %}
+
+    {% load static %}
+
+    {% load tag_extras %}
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.0.0/chartjs-plugin-annotation.min.js"
+            integrity="sha512-sLZhA8NE4bIPKMnsROQpJTBKVOQf8ie2GMFVXVfcg90tJ0aNhAWxhPyN0BRjwvZ35dSQF7kSzXtCU11KvWvNwQ=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@1.27.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
+    <script src="{% static 'Main/showProcessScripts.js' %}"></script>
+
+<style>
+    .styledTimer {
+        font-size: 2em;
+        font-weight: bold;
+        color: #FF5722; /* Deep orange color */
+        background-color: #FBE9E7; /* Light orange background */
+        padding: 10px 20px;
+        border-radius: 10px;
+        display: inline-block;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        margin-top: 10px;
+        letter-spacing: 2px;
+    }
+
+    .graphContainer {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    canvas {
+        background-color: white;
+    }
+
+    /* Custom styles for navigation buttons */
+    .custom-margin-right {
+        margin-right: 40px;
+    }
+
+    .custom-margin-x {
+        margin-left: 1px; 
+        margin-right: 1px; 
+    }
+
+    .custom-margin-left {
+        margin-left: 40px;
+    }
+</style>
+
+
+    <head>
+        <link rel="stylesheet" type="text/css" href="{% static 'Main/showProcessStyle.css' %}">
+    </head>
+
+    <body>
+    <div class="siteMap">
+        <nav class="flex px-5 py-3 text-gray-700 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700"
+             aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="/showProjects/"
+                       class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
+                        <svg aria-hidden="true" class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+                        </svg>
+                        Projects
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg aria-hidden="true" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                  clip-rule="evenodd"></path>
+                        </svg>
+                        <a href='/p{{ process.project.id }}'
+                           class="ml-1 text-sm font-medium text-gray-700 hover:text-blue-600 md:ml-2 dark:text-gray-400 dark:hover:text-white">All
+                            Processes</a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <svg aria-hidden="true" class="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd"
+                                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                  clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="ml-1 text-sm font-medium text-gray-500 md:ml-2 dark:text-gray-400">Process</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+<div class="flex items-center justify-center mt-4">
+    <button id="prevProcess" class="text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white flex items-center custom-margin-right">
+        <svg aria-hidden="true" class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M12.707 14.707a1 1 0 01-1.414 0L7.293 10.707a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L9.414 10l3.293 3.293a1 1 0 010 1.414z" clip-rule="evenodd"></path>
+        </svg>
+        <span>Previous</span>
+    </button>
+    
+    <span class="text-xl font-semibold custom-margin-x">Process Navigator</span>
+    
+    <button id="nextProcess" class="text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white flex items-center custom-margin-left">
+        <span>Next</span>
+        <svg aria-hidden="true" class="w-6 h-6 ml-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+        </svg>
+    </button>
+</div>
+
+
+    </div>
+
+
+    <h2 class="processHeader">{{ Pro.project.project_name }}
+        {% if Pro.project.manual %}{{ Pro.manualName }}{% else %}{{ Pro.name }}{% endif %}</h2>
+
+    {% if technician or supervisor %}
+        <button style="position:fixed; margin-left:10px; z-index:10000000" id="dropdownDefaultButton"
+                data-dropdown-toggle="dropdownKey"
+                class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
+                type="button">Key
+            <svg style="display: inline;" class="w-4 h-4 ml-2" aria-hidden="true" fill="none" stroke="currentColor"
+                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+        </button>
+
+        <div id="dropdownKey"
+             class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow w-44 dark:bg-gray-700">
+            <div style="width:350px;"
+                 class="max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+                <h3 class="text-xs text-gray-700 uppercase " style="border-bottom: 1pt solid black">Sub-process
+                    Status</h3>
+                <ul class="my-4 space-y-3">
+                    <div class="grid grid-cols-2 gap-3" style="min-width: 270px;">
+                        <div style="padding:0; border-radius:20px" class=" text-gray-900 inline-block align-middle">
+                            Waiting
+                        </div>
+                        <div class="yellowBox"></div>
+                        <div style="padding:0; border-radius:20px" class=" text-gray-900 align-middle">In Progress</div>
+                        <div class="amberBox"></div>
+                        <div style="padding:0; border-radius:20px" class=" text-gray-900 align-middle">Fail</div>
+                        <div class="redBox"></div>
+                        <div style="padding:0; border-radius:20px" class="text-gray-900 align-middle">Approved</div>
+                        <div class="greenBox"></div>
+                        <div style="padding:0; border-radius:20px" class="text-gray-900 align-middle">Start op.</div>
+                        <center style="height: 24px;">
+                            <div name="play" value="{{ sub_process.id }}" style="height:24px; width:24px;"
+                                 class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">
+                                <span class="play">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </center>
+                        <div style="padding:0; border-radius:20px" class="text-gray-900 align-middle">Stop op.</div>
+                        <center style="height: 24px;">
+                            <div name="stopStatus" value="{{ sub_process.id }}" style="height:24px; width:24px; "
+                                 class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800">
+                                <span class="cross">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </center>
+                        <div style="padding:0; border-radius:20px" class="text-gray-900 align-middle">Approve</div>
+                        <center style="height: 24px;">
+                            <div name="status" value="{{ sub_process.id }}" style="height:24px; width:24px;"
+                                 class="relative inline-flex items-center justify-center p-0.5 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 hover:text-white dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800">
+                                <span class="thumb">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z"/>
+                                    </svg>
+                                </span>
+                            </div>
+                        </center>
+                    </div>
+                </ul>
+                <h3 class="text-xs text-gray-700 uppercase " style="border-bottom: 1pt solid black">Text</h3>
+                <ul class="my-4 space-y-3">
+                    <div class="grid grid-cols-2 gap-3" style="min-width: 270px;">
+                        <div style="padding:0; border-radius:20px" class=" text-gray-900 inline-block align-middle">
+                            Machine
+                        </div>
+                        <div style="text-align:center;" class="purpleText">Example</div>
+                        <div style="padding:0; border-radius:20px" class=" text-gray-900 align-middle">Sensor</div>
+                        <div style="text-align:center;" class="redText">Example</div>
+                    </div>
+                </ul>
+                <h3 class="text-xs text-gray-700 uppercase " style="border-bottom: 1pt solid black">Machine/Sensor
+                    Status</h3>
+                <ul class="my-4 space-y-3">
+                    <div class="grid grid-cols-2 gap-3" style="min-width: 270px;">
+                        <div style="padding:0; border-radius:20px" class=" text-gray-900 inline-block align-middle">
+                            Needs Calibrating
+                        </div>
+                        <div class="amberBox"></div>
+                        <div style="padding:0; border-radius:20px" class=" text-gray-900 align-middle">Inactive</div>
+                        <div class="redBox"></div>
+                        <div style="padding:0; border-radius:20px" class="text-gray-900 align-middle">Active</div>
+                        <div class="greenBox"></div>
+                    </div>
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+    {% if supervisor %}
+        {% for sub_process in orderedSubProList %}
+            <div id="dropdownMoreData{{ sub_process.id }}"
+                 class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow dark:bg-gray-700"
+                 style="width:500px;">
+                <div class="p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700"
+                     style="width:100%;">
+                    <div class="popGraphCont">
+
+                        {% for sensor in sub_process.sensor_set.all %}
+                            {% if sensor.name == "Thermocouple" %}
+                                <div class="keyContainer">
+                                    <div class="ellipseTemp"></div>
+                                    <p>Temperature Reached</p>
+                                    <div class="ellipsePressure"></div>
+                                    <p>Pressure Reached</p>
+                                </div>
+                                <div id="test{{ sub_process.id }}" class="popupGraphs">
+                                    <script> createNewGraph({{sub_process.id}});</script>
+                                    <script>    temp({{sub_process.id}});</script>
+                                </div>
+                            {% endif %}
+                            {% if sensor.name == "Pressure Sensor" %}
+                                <div id="pressureTest{{ sub_process.id }}" class="popupGraphs">
+                                    <script> createNewPressureGraph({{sub_process.id}});</script>
+                                    <script> pressure({{sub_process.id}});</script>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+
+
+                        {% if sub_process.name == 'Initialisation' %}
+
+                        <div class="processCriterionContainer" style="color: black;">
+                            <h1 style="color: darkblue; font-weight: bold;">Process Criterion:</h1>
+                            <p style="color: black; font-weight: bold; display: inline-flex; align-items: center;">
+                                Platten down and Shuttle home switches turn 
+                                <span style="width: 20px; height: 20px; border-radius: 50%; background-color: #FFBF00; margin: 0 5px; display: inline-block;"></span>
+                                to 
+                                <span style="width: 20px; height: 20px; border-radius: 50%; background-color: green; margin-left: 5px; display: inline-block;"></span>
+                            </p>
+                            <div style="margin-top: 20px;">
+                                <p style="font-weight: bold; color: black; display: inline-block; vertical-align: middle;">
+                                    Platten Down Switch:
+                                </p>
+                                <span id="platten-down-switch" 
+                                      style="display: inline-block; vertical-align: middle; width: 20px; height: 20px; border-radius: 50%; 
+                                             background-color: green; margin-left: 5px;">
+                                </span>
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <p style="font-weight: bold; color: black; display: inline-block; vertical-align: middle;">
+                                    Shuttle Home Switch:
+                                </p>
+                                <span id="shuttle-switch" 
+                                      style="display: inline-block; vertical-align: middle; width: 20px; height: 20px; border-radius: 50%; 
+                                             background-color: green; margin-left: 5px;">
+                                </span>
+                            </div>
+                            <!-- System Decision Table -->
+                            <h3 style="color: darkblue; font-weight: bold; margin-top: 30px;">System Decision:</h3>
+
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                                <tr style="background-color: #f0f0f0;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Platten is lowered</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="platten-down-check" style="color: green;">✔</span>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #f9f9f9;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Material carrier moved home</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="shuttle-check" style="color: green;">✔</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                {% elif sub_process.name == "Heat Mould and Platten Up" %}
+                    <div style="color: black;">
+                        <!-- Process Criterion -->  
+                        <h3 style="color: darkblue; font-weight: bold; margin-top: 10px;">Process Criterion:</h3>
+                        <p style="font-weight: bold; color: black; margin: 0; padding: 0; line-height: 1.5;">
+                            Mould pressing temperature is set to {% get_temp1 %} °C and the platten up location switch turns 
+                            <span style="display: inline-flex; align-items: center; vertical-align: middle; margin-left: 5px;">
+                                <span style="width: 20px; height: 20px; border-radius: 50%; background-color: #FFBF00; margin-right: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                                <span style="display: inline-block; vertical-align: middle; margin: 0 5px; margin-top: -3px;">to</span>
+                                <span style="width: 20px; height: 20px; border-radius: 50%; background-color: green; margin-left: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                            </span>
+                        </p>
+
+                        <div style="margin-top: 20px;">
+                            <p style="font-weight: bold; color: black; display: inline-block; vertical-align: middle;">Platten Up Switch:</p>
+                            <!-- Set the ball to default yellow -->
+                            <span id="platten-up-switch" 
+                                  style="display: inline-block; vertical-align: middle; width: 20px; height: 20px; border-radius: 50%; 
+                                         background-color: green; margin-left: 5px;"></span>
+                        </div>
+
+                        <!-- System Decision -->
+                        <h3 style="color: darkblue; font-weight: bold; margin-top: 30px;">System Decision:</h3>
+
+                        <!-- Two-Row Table -->
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                            <tr style="background-color: #f0f0f0;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">Temperature set to upper bound</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">
+                                    <span id="temperature-check" style="color: green;">
+                                        ✔
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">Platten is at top position</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">
+                                    <span id="platten-up-check" style="color: green;">
+                                        ✔
+                                    </span>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+
+
+
+                    {% elif sub_process.name == 'Blank Loaded in Machine' %}
+
+                        <h2 style="color: darkblue; font-weight: bold; margin-top: 10px;">Process Criterion:</h2>
+                        <p style="font-weight: bold; color: black;">Blank is loaded in material carrier successfully</p>
+
+                        <h3 style="color: darkblue; font-weight: bold; margin-top: 20px;">System Decision</h3>
+                        <p style="font-weight: bold; color: black;">Approve this subprocess when the manual operation is completed</p>
+
+                        <div style="margin-top: 20px;">
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                                <tr style="background-color: #f0f0f0;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Blank Loaded</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="blank-loaded-check" style="color: green;">
+                                            ✔
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                    {% elif sub_process.name == "Temperature Reached and Platten Down" %}
+                        <div style="color: black;">
+                            <!-- Process Criterion -->
+                            <h3 style="color: darkblue; font-weight: bold; margin-top: 10px;">Process Criterion:</h3>
+                            <p style="font-weight: bold; color: black; margin: 0; padding: 0; line-height: 1.5;">
+                                Upper bound temperature reached to {% get_temp1 %} °C and the platten down location switch turns 
+                                <span style="display: inline-flex; align-items: center; vertical-align: middle; margin-left: 5px;">
+                                    <span style="width: 20px; height: 20px; border-radius: 50%; background-color: #FFBF00; margin-right: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                                    <span style="display: inline-block; vertical-align: middle; margin: 0 5px; margin-top: -3px;">to</span>
+                                    <span style="width: 20px; height: 20px; border-radius: 50%; background-color: green; margin-left: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                                </span>
+                            </p>
+                            <br>
+                            <p style="font-weight: bold; color: black;">The upper bound temperature is the temperature limit that this subprocess is set to reach for optimal performance.</p>
+
+                            <!-- Location Switch with Ball -->
+                            <div style="margin-top: 20px;">
+                                <p style="font-weight: bold; color: black; display: inline-block; vertical-align: middle;">Platten Down Switch:</p>
+                                <span id="platten-down-switch" 
+                                      style="display: inline-block; vertical-align: middle; width: 20px; height: 20px; border-radius: 50%; 
+                                             background-color: green; margin-left: 5px;">
+                                </span>
+                            </div>
+
+                            <!-- Temperature Graph -->
+                            <div class="graphContainer" style="margin-top: 20px;">
+                                <div style="display: flex; flex-direction: column; gap: 0px;">
+                                    <!-- First Row -->
+                                    <div style="display: flex; justify-content: center; gap: 20px;">
+                                        <canvas id="temperatureGraph1_reached" style="width: 350px; height: 250px;"></canvas>
+                                        <canvas id="temperatureGraph2_reached" style="width: 350px; height: 250px;"></canvas>
+                                        <canvas id="temperatureGraph3_reached" style="width: 350px; height: 250px;"></canvas>
+                                    </div>
+                                    <!-- Second Row -->
+                                    <div style="display: flex; justify-content: center; gap: 20px;">
+                                        <canvas id="temperatureGraph4_reached" style="width: 350px; height: 250px;"></canvas>
+                                        <canvas id="temperatureGraph5_reached" style="width: 350px; height: 250px;"></canvas>
+                                        <canvas id="temperatureGraph6_reached" style="width: 350px; height: 250px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Decision -->
+                            <h3 style="color: darkblue; font-weight: bold; margin-top: 30px;">System Decision:</h3>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                                <tr style="background-color: #f0f0f0;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Upper Bound Temperature Reached</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="upper-bound-temperature-check" style="color: green;">
+                                            ✔
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #f9f9f9;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Platten is Lowered</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="platten-down-check" style="color: green;">
+                                            ✔
+                                        </span>
+                                    </td>
+                                </tr>
+                            </table>
+                            <br>
+                        </div>
+
+
+
+                    {% elif sub_process.name == 'Blank Inside Press' %}
+                        
+                        <h2 style="color: darkblue; font-weight: bold; margin-top: 10px;">Process Criterion:</h2>
+                        <p style="font-weight: bold; color: black;">Triggering the material carrier successfully</p>
+                        <p style="color: black; font-weight: bold; display: inline-flex; align-items: center;">
+                                Shuttle press switch turn 
+                                <span style="width: 20px; height: 20px; border-radius: 50%; background-color: #FFBF00; margin: 0 5px; display: inline-block;"></span>
+                                to 
+                                <span style="width: 20px; height: 20px; border-radius: 50%; background-color: green; margin-left: 5px; display: inline-block;"></span>
+                            </p>
+                        <div style="margin-top: 20px;">
+                                <p style="font-weight: bold; color: black; display: inline-block; vertical-align: middle;">
+                                    Shuttle Press Switch:
+                                </p>
+                                <span id="shuttle-press-switch" 
+                                      style="display: inline-block; vertical-align: middle; width: 20px; height: 20px; border-radius: 50%; 
+                                             background-color: green; margin-left: 5px;">
+                                </span>
+                            </div>
+
+                        <h3 style="color: darkblue; font-weight: bold; margin-top: 20px;">System Decision:</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                                <tr style="background-color: #f9f9f9;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Material carrier moved press</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="shuttle-press-check" style="color: green;">✔</span>
+                                    </td>
+                                </tr>
+                            </table>
+
+                  {% elif sub_process.name == "Blank Pressed" %}
+                        <!-- Process Criterion Section -->
+                        <div style="background-color: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                            <div>
+                                <h3 style="color: darkblue; font-weight: bold; margin-top: 10px;">Process Criterion:</h3>
+                                <p style="font-weight: bold; color: black;">
+                                    <!-- Platten Up Indicator -->
+                                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: darkblue; margin-right: 5px;"></span>
+                                    <span style="display: inline-flex; align-items: center; vertical-align: middle; margin-left: 5px;">
+                                        <span style="width: 20px; height: 20px; border-radius: 50%; background-color: #FFBF00; margin-right: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                                        <span style="display: inline-block; vertical-align: middle; margin: 0 5px; margin-top: -3px;">to</span>
+                                        <span style="width: 20px; height: 20px; border-radius: 50%; background-color: green; margin-left: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                                    </span>
+                                    Platten up switch turns green and the timer finishes counting down.
+                                    <br>
+                                    
+                                    <!-- Temperature Bounds -->
+                                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: darkblue; margin-right: 5px;"></span>
+                                    Temperature must remain between the upper bound of <span style="color: red;">{% get_upper_bound %} °C</span> and the lower bound of <span style="color: blue;">{% get_lower_bound %} °C</span> with a tolerance of {% get_tolerance %} °C.
+                                    <br>
+                                    
+                                    <!-- Pressure Bounds -->
+                                    <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: darkblue; margin-right: 5px;"></span>
+                                    Pressure must stay between the upper bound of <span style="color: blue;">7 Bar</span> and the lower bound of <span style="color: LightSkyBlue;">5 Bar</span> with a tolerance of ±1 Bar.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Timer Setting Section -->
+                        <div style="background-color: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                        <h3 style="color: darkblue; font-weight: bold;">Set Timer</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="number" 
+                                   id="timer-input" 
+                                   min="0" 
+                                   max="3600" 
+                                   value="0" 
+                                   style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 100px;">
+                            <span>seconds</span>
+                            <button onclick="setTimer()" 
+                                    style="padding: 8px 16px; background-color: darkblue; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Set Timer
+                            </button>
+                            <button onclick="resetTimer()" 
+                                    style="padding: 8px 16px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Reset Timer
+                            </button>
+                        </div>
+                        <p id="timer-description" style="margin-top: 10px; color: gray;">
+                            The timer has been successfully set for a period of 120 seconds.
+                        </p>
+                    </div>
+
+                        <!-- Platten Up Switch Section -->
+                        <div style="background-color: white; border-radius: 10px; padding: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+                            <div style="margin-top: 20px;">
+                                <p style="font-weight: bold; color: black; display: inline-block; vertical-align: middle;">Platten Up Switch:</p>
+                                <span id="platten-up-switch" 
+                                      style="display: inline-block; vertical-align: middle; width: 20px; height: 20px; border-radius: 50%; 
+                                             background-color: green; margin-left: 5px;"></span>
+                            </div>
+                        </div>
+
+                        <!-- Temperature Graphs Section -->
+                        <div class="graphContainer" style="margin-top: 20px;">
+                            <div style="display: flex; flex-direction: column; gap: 0px;">
+                                <!-- First Row -->
+                                <div style="display: flex; justify-content: center; gap: 20px;">
+                                    <canvas id="temperatureGraph1" style="width: 350px; height: 250px;"></canvas>
+                                    <canvas id="temperatureGraph2" style="width: 350px; height: 250px;"></canvas>
+                                    <canvas id="temperatureGraph3" style="width: 350px; height: 250px;"></canvas>
+                                </div>
+                                <!-- Second Row -->
+                                <div style="display: flex; justify-content: center; gap: 20px;">
+                                    <canvas id="temperatureGraph4" style="width: 350px; height: 250px;"></canvas>
+                                    <canvas id="temperatureGraph5" style="width: 350px; height: 250px;"></canvas>
+                                    <canvas id="temperatureGraph6" style="width: 350px; height: 250px;"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Pressure Graph Section -->
+                        <div class="graphContainer" style="margin-top: 20px;">
+                            <canvas id="pressureGraph_blankPressed" style="width: 100%; height: 500px;"></canvas>
+                        </div>
+
+                        <!-- Timer Display Section -->
+                        <div class='styledTimer' style="margin-top: 20px; display: flex; justify-content: center; align-items: center;">
+                            <span id="timer_blankPressed" style="font-weight: bold; font-size: 24px;">00:00:00 (Completed)</span>
+                        </div>
+
+                        <!-- System Decision Section -->
+                        <h3 style="color: darkblue; font-weight: bold; margin-top: 30px;">System Decision:</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                            <tr style="background-color: #f0f0f0;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">Platten is raised</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">
+                                    <span id="platten-up-check" style="color: green;">✔</span>
+                                </td>
+                            </tr>
+                            <tr style="background-color: #f9f9f9;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">Temperature is consistent</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">
+                                    <span id="temperature-consistent-check" style="color: green;">✔</span>
+                                </td>
+                            </tr>
+                            <tr style="background-color: #f0f0f0;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">Timer has completed</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;" id="timerStatus">
+                                    <span id="timer-check" style="color: green;">✔</span>
+                                </td>
+                            </tr>
+                        </table>
+
+
+              {% elif sub_process.name == "Mould Cooling" %}
+                        <div style="color: black;">
+                            <!-- Process Criterion -->
+                            <h3 style="color: darkblue; font-weight: bold; margin-top: 10px;">Process Criterion:</h3>
+                            <p style="font-weight: bold; color: black;">Set cooling temperatures and activate cooling fans</p>
+
+                            <!-- Temperature Settings -->
+                            <div style="margin-top: 20px;">
+                                <!-- Centre Temperature Input -->
+                                <div style="margin-bottom: 15px;">
+                                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                                        Set Cooling Temperature for Centre (Thermocouple 2 and 5):
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="temp-centre-input"
+                                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 200px;"
+                                        placeholder="Enter temperature"
+                                    />
+                                    <p id="temp-centre-description" style="margin-top: 5px; color: #666; font-style: italic;">
+                                        The temperature has been set to precisely 100°C for thermocouple 2 and 5.
+                                    </p>
+                                    <button 
+                                        onclick="setCentreTemperatures()"
+                                        style="background-color: #007bff; color: white; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer;"
+                                    >
+                                        Set Centre Temperatures
+                                    </button>
+                                    <button 
+                                        onclick="resetCentreTemperatures()"
+                                        style="background-color: #dc3545; color: white; padding: 8px 10px; border: none; border-radius: 4px; cursor: pointer;"
+                                    >
+                                        Reset Centre Temperatures
+                                    </button>
+                                </div>
+                                
+                                <div style="margin-bottom: 15px;">
+                                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">
+                                        Set Cooling Temperature for Sides (Thermocouple 1, 3, 4, and 6):
+                                    </label>
+                                    <input 
+                                        type="number" 
+                                        id="temp-side-input"
+                                        style="padding: 5px; border: 1px solid #ccc; border-radius: 4px; width: 200px;"
+                                        placeholder="Enter temperature"
+                                    />
+                                    <p id="temp-side-description" style="margin-top: 5px; color: #666; font-style: italic;">
+                                        The temperature has been set to precisely 100°C for thermocouple 1, 3, 4, and 6.
+                                    </p>
+                                     <button 
+                                        onclick="setSideTemperatures()"
+                                        style="background-color: #28a745; color: white; padding: 8px 21px; border: none; border-radius: 4px; cursor: pointer;"
+                                    >
+                                        Set Side Temperatures
+                                    </button>
+                                    <button 
+                                        onclick="resetSideTemperatures()"
+                                        style="background-color: #dc3545; color: white; padding: 8px 21px; border: none; border-radius: 4px; cursor: pointer;"
+                                    >
+                                        Reset Side Temperatures
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Temperature Graphs -->
+                            <div class="graphContainer" style="margin-top: 20px;">
+                                <div style="display: flex; flex-direction: column; gap: 0px;">
+                                    <div style="display: flex; justify-content: center; gap: 20px;">
+                                        <canvas id="temperatureGraph1_mouldCooling" style="width: 350px; height: 250px;"></canvas>
+                                        <canvas id="temperatureGraph2_mouldCooling" style="width: 350px; height: 250px;"></canvas>
+                                        <canvas id="temperatureGraph3_mouldCooling" style="width: 350px; height: 250px;"></canvas>
+                                    </div>
+                                    <div style="display: flex; justify-content: center; gap: 20px;">
+                                        <canvas id="temperatureGraph4_mouldCooling" style="width: 350px; height: 250px;"></canvas>
+                                        <canvas id="temperatureGraph5_mouldCooling" style="width: 350px; height: 250px;"></canvas>
+                                        <canvas id="temperatureGraph6_mouldCooling" style="width: 350px; height: 250px;"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- System Decision -->
+                            <h3 style="color: darkblue; font-weight: bold; margin-top: 30px;">System Decision:</h3>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                                <tr style="background-color: #f0f0f0;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Cooling Fans Active</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="fans-check" style="color: green;">✔</span>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #f0f0f0;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Centre Temperature Set</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="temperature-centre-set" style="color: green;">✔</span>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #f0f0f0;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Side Temperature Set</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="temperature-side-set" style="color: green;">✔</span>
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #f0f0f0;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Lower bound temperatures reached</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="lower-bound-temperature-check" style="color: green;">✔</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+
+                   {% elif sub_process.name == 'Part Released from Mould' %}
+
+                        <div style="color: black;">
+                            <!-- Process Criterion -->
+                            <h3 style="color: darkblue; font-weight: bold; margin-top: 10px;">Process Criterion:</h3>
+                            <p style="font-weight: bold; color: black; margin: 0; padding: 0; line-height: 1.5;">
+                                Lower bound temperature has been reached and the platten down location switch turns 
+                                <span style="display: inline-flex; align-items: center; vertical-align: middle; margin-left: 5px;">
+                                    <span style="width: 20px; height: 20px; border-radius: 50%; background-color: #FFBF00; margin-right: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                                    <span style="display: inline-block; vertical-align: middle; margin: 0 5px; margin-top: -3px;">to</span>
+                                    <span style="width: 20px; height: 20px; border-radius: 50%; background-color: green; margin-left: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                                </span>
+                            </p>
+
+                            <div style="margin-top: 20px;">
+                                <p style="font-weight: bold; color: black; display: inline-block; vertical-align: middle;">Platten Down Switch:</p>
+                                <span id="platten-down-switch" style="display: inline-block; vertical-align: middle; width: 20px; height: 20px; border-radius: 50%; 
+                                background-color: green; margin-left: 5px;"></span> 
+                            </div>
+
+                            <!-- System Decision -->
+                            <h3 style="color: darkblue; font-weight: bold; margin-top: 30px;">System Decision:</h3>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                                <tr style="background-color: #f0f0f0;">
+                                    <td style="padding: 8px; border: 1px solid #ddd;">Platten is lowered</td>
+                                    <td style="padding: 8px; border: 1px solid #ddd;">
+                                        <span id="platten-down-check" style="color: green;">✔</span> 
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+
+                       {% elif sub_process.name == 'Machine Returns To Home Location' %}
+
+                        <!-- Process Criterion -->
+                        <h3 style="color: darkblue; font-weight: bold; margin-top: 10px;">Process Criterion:</h3>
+                        <p style="font-weight: bold; color: black; margin: 0; padding: 0; line-height: 1.5;">
+                            Material carrier switch turns 
+                            <span style="display: inline-flex; align-items: center; vertical-align: middle; margin-left: 5px;">
+                                <span style="width: 20px; height: 20px; border-radius: 50%; background-color: #FFBF00; margin-right: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                                <span style="display: inline-block; vertical-align: middle; margin: 0 5px; margin-top: -3px;">to</span>
+                                <span style="width: 20px; height: 20px; border-radius: 50%; background-color: green; margin-left: 5px; display: inline-block; vertical-align: middle; margin-top: -3px;"></span>
+                            </span>
+                        </p>
+
+                        <!-- Material Carrier Location Switch -->
+                        <div style="margin-top: 20px;">
+                            <p style="font-weight: bold; color: black; display: inline-block; vertical-align: middle;">Shuttle Home Switch:</p>
+                            <span id="shuttle-switch" style="display: inline-block; vertical-align: middle; width: 20px; height: 20px; border-radius: 50%; 
+                            background-color: green; margin-left: 5px;"></span> <!-- Default to yellow -->
+                        </div>
+
+                        <!-- System Decision -->
+                        <h3 style="color: darkblue; font-weight: bold; margin-top: 30px;">System Decision:</h3>
+                        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                            <tr style="background-color: #f0f0f0;">
+                                <td style="padding: 8px; border: 1px solid #ddd;">Material carrier moved to the home position</td>
+                                <td style="padding: 8px; border: 1px solid #ddd;">
+                                    <span id="shuttle-check" style="color: green;">✔</span> 
+                                </td>
+                            </tr>
+                        </table>
+
+                        {% elif sub_process.name == 'Part Leaves Machine' %}
+
+                        <div style="color: black;">
+                            <p style="font-weight: bold; color: black;">
+                                Approve this subprocess when the manual operation is completed
+                            </p>
+                        </div>
+
+                        
+                        {% elif sub_process.name == 'Part Assessment (Initial Weight)' %}
+                                <div style="color: black;">
+                                    <!-- Weight Information -->
+                                    <div style="margin-top: 20px;">
+                                        <!-- Real-time weight display -->
+                                        <div style="margin-bottom: 25px;">
+                                            <div style="margin-bottom: 10px;">
+                                                <label style="font-weight: bold; color: black; display: inline-block; width: 150px;">Current Reading:</label>
+                                                <span id="weight-display">1.500 kg</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Set Actual Weight Form -->
+                                        <form method="POST" style="margin-top: 15px;">
+                                            {% csrf_token %}
+                                            <div style="margin-left: 150px;">
+                                                <button type="submit" name="set_actual_weight" 
+                                                        style="padding: 5px; width: 200px; height: 30px; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">
+                                                    Set Actual Weight
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+    
+
+
+                            {% elif sub_process.name == 'Trim' %}
+                                <div style="color: black;">
+                                    <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                                        <tr style="background-color: #f0f0f0;">
+                                            <td style="padding: 8px; border: 1px solid #ddd; width: 50%;">Initial Weight</td>
+                                            <td style="padding: 8px; border: 1px solid #ddd;">
+                                                {{ weight_sensor.actualWeight|default:'Not recorded' }} kg
+                                            </td>
+                                        </tr>
+                                        <tr style="background-color: #f0f0f0;">
+                                            <td style="padding: 8px; border: 1px solid #ddd;">Final Weight</td>
+                                            <td style="padding: 8px; border: 1px solid #ddd;">
+                                                {{ final_weight_sensor.finalWeight|default:'Not recorded' }} kg
+                                            </td>
+                                        </tr>
+                                        <tr style="background-color: #f0f0f0;">
+                                            <td style="padding: 8px; border: 1px solid #ddd;">Weight Loss</td>
+                                            <td style="padding: 8px; border: 1px solid #ddd;">
+                                                {% if weight_sensor.actualWeight and final_weight_sensor.finalWeight %}
+                                                    {{ weight_sensor.actualWeight|sub:final_weight_sensor.finalWeight|floatformat:3 }} kg
+                                                {% else %}
+                                                    Waiting for measurements...
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                        <tr style="background-color: #f0f0f0;">
+                                            <td style="padding: 8px; border: 1px solid #ddd;">Material Wastage Cost</td>
+                                            <td style="padding: 8px; border: 1px solid #ddd;" id="material-wastage-cost">
+                                                {% if sub_process.materialWastageCost %}
+                                                    £{{ sub_process.materialWastageCost|floatformat:2 }}
+                                                {% else %}
+                                                    Not calculated
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <!-- Move hidden input outside of the conditional -->
+                                    <input type="hidden" id="material-wastage-cost-input" value="{{ material_wastage_cost|default:0 }}">
+                                </div>
+
+
+                            {% elif sub_process.name == 'Part Assessment (Final Weight)' %}
+                            <div style="color: black;" 
+                                data-nominal-weight="{{ process.project.nominalPartWeight|default_if_none:0 }}"
+                                data-tolerance="{{ final_weight_sensor.tolerance|default_if_none:0 }}">
+                                <!-- Process Criterion -->
+                                <h3 style="color: darkblue; font-weight: bold; margin-top: 10px;">Process Criterion:</h3>
+                                <p style="font-weight: bold; color: black; margin: 0; padding: 0; line-height: 1.5;">
+                                    Compare real-time scale readings against nominal weight to verify final weight is within tolerance range
+                                </p>
+                                
+                                <!-- Weight Information -->
+                                <div style="margin-top: 20px;">
+                                    <!-- Display the nominal weight -->
+                                    <p style="font-weight: bold; color: black;">Nominal Weight: {{ process.project.nominalPartWeight }} kg</p>
+                                    
+                                    <!-- Real-time weight display -->
+                                    <div style="margin-bottom: 25px;">
+                                        <div style="margin-bottom: 10px;">
+                                            <label style="font-weight: bold; color: black; display: inline-block; width: 150px;">Scale Reading:</label>
+                                            <span id="final-weight-display">0.650 kg</span>
+                                        </div>
+                                    </div>
+                                    <!-- Tolerance Form -->
+                                    <form method="POST" style="margin-top: 15px;">
+                                        {% csrf_token %}
+                                        <div style="margin-bottom: 25px; display: flex; flex-direction: column;">
+                                            <div style="margin-bottom: 10px;">
+                                                <label style="font-weight: bold; color: black; display: inline-block; width: 150px;">Tolerance (kg):</label>
+                                                <input type="number" step="0.01" name="tolerance" id="final-tolerance-input"
+                                                    value="{{ final_weight_sensor.tolerance|default_if_none:'' }}" 
+                                                    style="padding: 5px; width: 200px; height: 30px;">
+                                            </div>
+                                            <div style="margin-left: 150px;">
+                                                <button type="submit" name="set_final_tolerance" 
+                                                        style="padding: 5px; width: 200px; height: 30px; background-color: #4CAF50; color: white; border: none; border-radius: 4px;">
+                                                    Set Tolerance
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            
+                                <!-- System Decision -->
+                                <h3 style="color: darkblue; font-weight: bold; margin-top: 30px;">System Decision:</h3>
+                                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                                    <tr style="background-color: #f0f0f0;">
+                                        <td style="padding: 8px; border: 1px solid #ddd;">Final weight within tolerance</td>
+                                        <td style="padding: 8px; border: 1px solid #ddd;">
+                                            <span id="final-weight-status">
+                                                <span style="color: green;">✔</span>
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            
+                            {% elif sub_process.name == "Part Assessment (Final Geometry)" %}
+                        <div class="flex flex-col items-center justify-center">
+                            <dt class="mb-2 text-3xl font-extrabold">
+                                <button id="toggleButton"
+        onclick="location.href = '{% url 'edge_detection:edge_detection' process.id %}'"    
+        class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">
+    <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+        Edge Detection
+    </span>
+</button>
+                            </dt>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endif %}
+    {% csrf_token %}
+    <div class="hScrollbar" id="hScrollbar">
+        {% if management %}
+            <div class="titleContainer">
+                <ul id="titles">
+                    <p style="margin-bottom: 45px">Interface Time</p>
+                    <p style="margin-bottom: 50px">Process Time</p>
+                    <p>Total Material Cost</p>
+                    <p style="margin-bottom: 45px;">Total Labour Cost</p>
+                    <p style="margin-bottom: 40px">Power Cost</p>
+                    <p style="margin-bottom: 0">Total Cost</p>
+                </ul>
+            </div>
+        {% endif %}
+        <div class="subListContainer">
+            {% for sub_process in orderedSubProList %}
+                <div class="subProcessWithVSM" id="{{ sub_process.name|to_id }}">
+                    {% if management %}
+                        <div class="subProcessMan">
+                    {% else %}
+                        <div class="subProcessSup">
+                    {% endif %}
+                    {% if sub_process.manualName == 'Final Inspection' or sub_process.name == 'Final Inspection' %}
+                        <a href="/finalInspection{{ sub_process.id }}">
+                            <span>
+                                <svg style="display:inline" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077l1.41-.513m14.095-5.13l1.41-.513M5.106 17.785l1.15-.964m11.49-9.642l1.149-.964M7.501 19.795l.75-1.3m7.5-12.99l.75-1.3m-6.063 16.658l.26-1.477m2.605-14.772l.26-1.477m0 17.726l-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205L12 12m6.894 5.785l-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864l-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495"/>
+                                </svg>
+                                <span id="subProcess" style="padding-left:0">{% if Pro.project.manual %}
+                                    {{ sub_process.manualName }}{% else %}{{ sub_process.name }}{% endif %}</span>
+                            </span>
+                        </a>
+
+                    {% else %}
+                        <a href="/c{{ sub_process.id }}" style="padding-left: 0;">
+                            <svg style="display:inline" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                 viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                      d="M4.5 12a7.5 7.5 0 0015 0m-15 0a7.5 7.5 0 1115 0m-15 0H3m16.5 0H21m-1.5 0H12m-8.457 3.077l1.41-.513m14.095-5.13l1.41-.513M5.106 17.785l1.15-.964m11.49-9.642l1.149-.964M7.501 19.795l.75-1.3m7.5-12.99l.75-1.3m-6.063 16.658l.26-1.477m2.605-14.772l.26-1.477m0 17.726l-.26-1.477M10.698 4.614l-.26-1.477M16.5 19.794l-.75-1.299M7.5 4.205L12 12m6.894 5.785l-1.149-.964M6.256 7.178l-1.15-.964m15.352 8.864l-1.41-.513M4.954 9.435l-1.41-.514M12.002 12l-3.75 6.495"/>
+                            </svg>
+                            <span id="subProcess" style="padding-left: 0;">{% if Pro.project.manual %}
+                                {{ sub_process.manualName }}{% else %}{{ sub_process.name }}{% if sub_process.repeat %}
+                                    - Repeat Block{% endif %}{% endif %}
+                            </span>
+                        </a>
+                    {% endif %}
+                    {% if sub_process.status == 0 %}
+                        <div id="status-{{ sub_process.id }}" class="status statusWaiting" style="border-radius:20px; margin-bottom: 10px;">
+                            <p class="block mb-2 text-sm text-gray-900 dark:text-white" style="padding-left:0; display:inline;">Waiting</p>
+                        </div>
+                    {% elif sub_process.status == 1 %}
+                        <div id="status-{{ sub_process.id }}" class="status statusInProgress" style="border-radius:20px; margin-bottom: 10px;">
+                            <p class="block mb-2 text-sm text-gray-900 dark:text-white" style="padding-left:0; display:inline">In Progress</p>
+                        </div>
+                    {% elif sub_process.status == 2 %}
+                        <div id="status-{{ sub_process.id }}" class="status statusPass" style="border-radius:20px; margin-bottom: 10px;">
+                            <p class="block mb-2 text-sm text-gray-900 dark:text-white" style="padding-left:0; display:inline;">Approved</p>
+                        </div>
+                    {% elif sub_process.status == 3 %}
+                        <div id="status-{{ sub_process.id }}" class="status statusError" style="border-radius:20px; margin-bottom: 10px;">
+                            <p class="block mb-2 text-sm text-gray-900 dark:text-white" style="padding-left:0; display:inline;">Error</p>
+                        </div>
+                    {% endif %}
+
+                    <body>
+ 
+                    {% if supervisor %}
+                        <div class="inline-flex rounded-md shadow-sm" role="group">
+                            <form method="POST" action="/partStart/{{sub_process.id}}/" style="display: inline-block; margin-top:15px" class="playbtnform">
+                            {% csrf_token %}
+                            <button name="play" value="{{sub_process.id}}" 
+                                    style="height:40px; width:40px; margin-left: 5px;"
+                                    class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">
+                                <span class="play">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                         stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+                                    </svg>
+                                </span>
+                            </button>
+                        </form>
+                      
+                            <form method="POST" action="/part_bad{{ sub_process.id }}"
+                                  style="display: inline-block; margin-top:15px">
+                                {% csrf_token %}
+                                <button name="stopStatus" value="{{ sub_process.id }}" style="height:40px; width:40px; "
+                                        class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-pink-500 to-orange-400 group-hover:from-pink-500 group-hover:to-orange-400 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-pink-200 dark:focus:ring-pink-800">
+                                    <span class="cross">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                             stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                  d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </span>
+                                </button>
+                            </form>
+                    <form method="POST" action="/part_approve/{{sub_process.id}}/" style="display: inline-block; margin-top:15px" class="approvebtnform" onsubmit="handleApproveButtonSubmit(event)">    
+                        {% csrf_token %}
+                        <button name="approve" value="{{sub_process.id}}" 
+                                style="height:40px; width:40px; margin-right:5px"
+                                class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-teal-300 to-lime-300 group-hover:from-teal-300 group-hover:to-lime-300 hover:text-white dark:text-white dark:hover:text-gray-900 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-lime-800">
+                            <span class="thumb">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                     stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                          d="M6.633 10.5c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 012.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 00.322-1.672V3a.75.75 0 01.75-.75A2.25 2.25 0 0116.5 4.5c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 01-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 00-1.423-.23H5.904M14.25 9h2.25M5.904 18.75c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 01-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 10.203 4.167 9.75 5 9.75h1.053c.472 0 .745.556.5.96a8.958 8.958 0 00-1.302 4.665c0 1.194.232 2.333.654 3.375z"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </form>
+                        </div>
+                        {% if sub_process.name == 'Initialisation' %}
+                        <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                            <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                                <span style="font-size: 14px; font-weight: bold; color: white;">Platten Down Switch</span>
+                            </div>
+                            <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                                <span style="font-size: 14px; font-weight: bold; color: white;">Shuttle Home Switch</span>
+                            </div>
+                        </div>
+                        <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                            <div id="motor1Status" style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                                <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 1</span>
+                            </div>
+                            <div id="motor3Status" style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                                <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 3</span>
+                            </div>
+                            <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                                <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Encoder 1</span>
+                            </div>
+                            <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                                <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Encoder 2</span>
+                            </div>
+                        </div>
+
+                
+            {% elif sub_process.name == 'Heat Mould and Platten Up' %}
+
+                <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 14px; font-weight: bold; color: white;">Platten Up Switch</span>
+                        </div>
+                    <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 4</span>
+                    </div>
+                    <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 2</span>
+                    </div>
+                </div>
+                {% elif sub_process.name == 'Blank Loaded in Machine' %}
+                <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Blank Loaded Switch</span>
+                    </div>
+                </div>
+                {% elif sub_process.name == 'Temperature Reached and Platten Down' %}
+                <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Platten Down Switch</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 1</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 2</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 3</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 4</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 5</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 6</span>
+                    </div>
+                      <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 4</span>
+                        </div>
+                    <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 2</span>
+                    </div>
+                </div>
+                {% elif sub_process.name == 'Blank Inside Press' %}
+                <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Shuttle Press Switch</span>
+                    </div>
+                    <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Encoder 1</span>
+                        </div>
+                    <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Encoder 2</span>
+                        </div>
+                    <div id="motor1Status" style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 1</span>
+                    </div>
+                    <div id="motor3Status" style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 3</span>
+                    </div>    
+                </div>
+
+                {% elif sub_process.name == 'Blank Pressed' %}
+                <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Platten Up Switch</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 1</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 2</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 3</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 4</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 5</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 6</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Pressure Sensor</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Timer</span>
+                    </div>
+                    <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 4</span>
+                        </div>
+                        <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                           <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 2</span>
+                    </div>
+                </div>
+                {% elif sub_process.name == 'Mould Cooling' %}
+                <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 1</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 2</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 3</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 4</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 5</span>
+                    </div>
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                    <span style="font-size: 14px;">Thermocouple 6</span>
+                    </div>
+                     <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                            <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 5</span>
+                        </div>
+                        <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                           <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 6</span>
+                    </div>
+                </div>
+                {% elif sub_process.name == 'Part Released from Mould' %}
+                <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px;">Platten Down Switch</span>
+                    </div>
+                </div>
+                {% elif sub_process.name == 'Machine Returns To Home Location' %}
+                <div style="width: 100%; margin-top: 10px; display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Shuttle Home Switch -->
+                    <div style="background-color: #10B981; color: white; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px;">Shuttle Home Switch</span>
+                    </div>
+                    <!-- Encoder 1 -->
+                    <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Encoder 1</span>
+                    </div>
+                    <!-- Encoder 2 -->
+                    <div style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Encoder 2</span>
+                    </div>
+                    <!-- Motor 1 -->
+                    <div id="motor1Status" style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 1</span>
+                    </div>
+                    <!-- Motor 3 -->
+                    <div id="motor3Status" style="background-color: #10B981; padding: 8px 16px; border-radius: 6px; display: flex; justify-content: center; align-items: center;">
+                        <span style="font-size: 14px; font-weight: bold; color: #9333ea;">Motor 3</span>
+                    </div>
+                </div>
+
+                    {% endif %}
+                    {% endif %}
+
+                    <div class="relative overflow-x-auto sm:rounded-lg">
+                        <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                            <tbody>
+                            {% if management %}
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Operator
+                                    </th>
+                                    <td class="px-6">
+                                        {{ sub_process.operator }}
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Machines
+                                    </th>
+                                    <td class="px-6">
+                                           {{ machine_name }}
+                                </tr>
+
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Labour Input
+                                    </th>
+                                    <td class="px-6">
+                                        {{ sub_process.labourInput }}%
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    {% if sub_process.name == 'Load and Cut Ply' or sub_process.name == 'Pickup Ply & Weld' or sub_process.name == 'Trim' or sub_process.name == 'Cut Ply Shapes' or sub_process.name == 'Press Part' or sub_process.name == 'Trim To Shape' or sub_process.name == 'Heat Tool' or sub_process.name == 'Check Final Geometry with Checking Template' %}
+                                        <th scope="row"
+                                            class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                            style="padding-top: 5px; padding-bottom: 5px;">
+                                            Process Time
+                                        </th>
+                                        <td class="px-6">
+                                            {{ sub_process.processTime }}
+                                        </td>
+                                    {% else %}
+                                        <th scope="row"
+                                            class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                            style="padding-top: 5px; padding-bottom: 5px;">
+                                            Interface Time
+                                        </th>
+                                        <td class="px-6">
+                                            {{ sub_process.interfaceTime }}
+                                        </td>
+                                    {% endif %}
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Job Start
+                                    </th>
+                                    <td class="px-6">
+                                        {{ sub_process.jobStart }}
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Job End
+                                    </th>
+                                    <td class="px-6">
+                                        {{ sub_process.jobEnd }}
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Scrap Rate
+                                    </th>
+                                    <td class="px-6">
+                                        {{ sub_process.scrapRate }}%
+                                    </td>
+                                </tr>
+                               <tr class="border-b border-gray-200 dark:border-gray-700">
+                                <th scope="row"
+                                    class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                    style="padding-top: 5px; padding-bottom: 5px;">
+                                    {% if sub_process.name in blank_instances %}
+                                        Number of Blanks
+                                    {% elif sub_process.name in part_instances %}
+                                        Number of Parts
+                                    {% else %}
+                                        Number of Plies
+                                    {% endif %}
+                                </th>
+                                <td class="px-6">
+                                    {% if sub_process.name in blank_instances %}
+                                        1
+                                    {% elif sub_process.name in part_instances %}
+                                        1
+                                    {% else %}
+                                        {{ sub_process.batchSize|floatformat:0 }}
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Power Consumption
+                                    </th>
+                                    <td class="px-6">
+                                        {{ sub_process.power }} Kwh
+                                    </td>
+                                </tr>
+                                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        {% if sub_process.name in ply_instances %}
+                                            <th scope="row" class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800">
+                                                Ply Instance
+                                            </th>
+                                            <td class="px-6">
+                                                {{ sub_process.plyInstance }}
+                                            </td>
+                                        {% elif sub_process.name in blank_instances %}
+                                            <th scope="row" class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800">
+                                                Blank Instance
+                                            </th>
+                                            <td class="px-6">
+                                                {{ sub_process.blankInstance }}
+                                            </td>
+                                        {% elif sub_process.name in part_instances %}
+                                            <th scope="row" class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800">
+                                                Part Instance
+                                            </th>
+                                            <td class="px-6">
+                                                {{ sub_process.partInstance }}
+                                            </td>
+                                        {% endif %}
+                                    </tr>
+
+
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        CO2 emissions from power
+                                    </th>
+                                    <td class="px-6">
+                                        {{ sub_process.CO2 }} Kg
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Cost of Material Waste
+                                    </th>
+                                    <td class="px-6">
+                                        £{{ sub_process.materialWastageCost|floatformat:3|default:"0.000" }}
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Cost of Scrap
+                                    </th>
+                                    <td class="px-6">
+                                        £{{ sub_process.materialScrapCost|floatformat:3|default:"0.000" }}
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Cost of Part
+                                    </th>
+                                    <td class="px-6">
+                                        £{{ sub_process.materialPartCost|floatformat:3|default:"0.000" }}
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Technician Labour Cost
+                                    </th>
+                                    <td class="px-6">
+                                        £{{ sub_process.technicianLabourCost|floatformat:3|default:"0.000" }}
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Supervisor Labour Cost
+                                    </th>
+                                    <td class="px-6">
+                                        £{{ sub_process.supervisorLabourCost|floatformat:3|default:"0.000" }}
+                                    </td>
+                                </tr>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th scope="row"
+                                        class="px-6 text-gray-900 whitespace-nowrap bg-blue-50 dark:text-white dark:bg-gray-800"
+                                        style="padding-top: 5px; padding-bottom: 5px;">
+                                        Total Cost
+                                    </th>
+                                    <td class="px-6">
+                                        £{{ sub_process.totalCost|floatformat:3|default:"0.000" }}
+                                    </td>
+                                </tr>
+                                
+                            {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                  
+                    {% if supervisor %}
+                        <button id="dropdownDefaultButton" data-dropdown-toggle="dropdownMoreData{{ sub_process.id }}"
+                                class="absolute inline-flex items-center justify-center p-0.5 mb-2 text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-600 to-blue-500 group-hover:from-purple-600 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800"
+                                type="button" style="width:138px; bottom: -40px; left:133.5px;">
+                        <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                            More Data
+                            <svg style="display: inline;" class="w-4 h-4 ml-2" aria-hidden="true" fill="none"
+                                 stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M19 9l-7 7-7-7">
+                                </path>
+                            </svg>
+                        </span>
+                        </button>
+                    {% endif %}
+                {% if management %}
+                        </div>
+                    {% else %}
+                        </div>
+                    {% endif %}
+                    {% if management %}
+                        <div id="VSMBackground">
+                            <div class="VSMContainer" id="VSMContainer{{ sub_process.id }}">
+                                <ul style="padding: 0; margin: 0;">
+                                                <p class="VSMValue"
+                                                   style="text-align: left; margin-left: 40px;">{{ sub_process.interfaceTime }}</p>
+                                                <p class="VSMValue processTime"
+                                                   style="text-align: right;">{{ sub_process.processTime }}</p>
+  
+                                </ul>
+                            </div>
+                        <div class="VSMContainer">
+                            <ul style="padding: 0; margin: 0;">
+                                <p class="VSMValue">£{{ sub_process.materialWastage }}</p>
+                                <p class="VSMValue totLabCost">£{{ sub_process.labourSumCost }}</p>
+                                <p class="VSMValue" style="margin-bottom:15px;">
+                                    £{{ sub_process.powerCost }}</p>
+                            </ul>
+                        </div>
+                        <div class="VSMContainer">
+                            <ul style="padding:0; margin:0;">
+                                <p class="VSMValue">£{{ sub_process.totalCost }}</p>
+                            </ul>
+                        </div>
+                        </div>
+                        {% endif %}
+                </div>
+                    {% if management %}
+                    <div class="lastCard">
+                        {% if sub_process.id == lastCardID.id %}
+                            <div class="VSMContainer" id="VSMTotalContainer">
+                                <p>{{ total_interface_time }}</p>
+                                <p>{{ total_process_time }}</p>
+                            </div>
+                            <div class="VSMContainer" id="VSMTotalContainer" style="margin-bottom:20">
+                                <p style="margin-bottom: 25px;">£{{ total_material_wastage }}</p>
+                                <p>£{{ total_labour_cost }}</p>
+                                <p>£{{ total_power_cost }}</p>
+                            </div>
+                            <div class="VSMContainer" id="VSMTotalContainer">
+                                <p>£{{ total_cost }}</p>
+                            </div>
+                        {% endif %}
+
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+
+
+
+
+<center>
+   <div class="bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700" style="width:90%; margin-top: 40px;">
+   <!-- Tab Buttons -->
+   <ul class="hidden text-sm font-medium text-center text-gray-500 divide-x divide-gray-200 rounded-lg sm:flex dark:divide-gray-600 dark:text-gray-400" id="fullWidthTab" data-tabs-toggle="#fullWidthTabContent" role="tablist">
+       {% if management %}
+           <li class="w-full">
+               <button id="stats-tab" data-tabs-target="#stats" type="button" role="tab" aria-controls="stats" aria-selected="true" class="inline-block w-full p-4 rounded-tl-lg bg-gray-50 hover:bg-gray-100 focus:outline-none dark:bg-gray-700 dark:hover:bg-gray-600">
+                   Edit
+               </button>
+           </li>
+       {% endif %}
+       <li class="w-full">
+           <button id="about-tab" data-tabs-target="#about" type="button" role="tab" aria-controls="about" aria-selected="false" class="inline-block w-full p-4 bg-gray-50 hover:bg-gray-100 focus:outline-none dark:bg-gray-700 dark:hover:bg-gray-600">
+               Sensor/Machines
+           </button>
+       </li>
+       <li class="w-full">
+           <button id="faq-tab" data-tabs-target="#faq" type="button" role="tab" aria-controls="faq" aria-selected="false" class="inline-block w-full p-4 rounded-tr-lg bg-gray-50 hover:bg-gray-100 focus:outline-none dark:bg-gray-700 dark:hover:bg-gray-600">
+               Other
+           </button>
+       </li>
+   </ul>
+
+   <!-- Tab Content -->
+   <div id="fullWidthTabContent" class="border-t border-gray-200 dark:border-gray-600">
+       <!-- Edit Tab -->
+       <div class="hidden p-4 bg-white rounded-lg md:p-8 dark:bg-gray-800" id="stats" role="tabpanel" aria-labelledby="stats-tab">
+           {% if management %}
+               <dl class="grid max-w-screen-xl grid-cols-1 gap-8 mx-auto text-gray-900 sm:grid-cols-1 xl:grid-cols-1 dark:text-white">
+                   <div class="flex flex-col items-center">
+                       <dt class="mb-2 text-3xl font-extrabold">
+                           <h3 class="text-xs text-gray-700 uppercase" style="border-bottom: 1pt solid black; top: 0; margin-bottom: 20px;">
+                               <strong>Part Instance</strong>
+                           </h3>
+                           <form method="POST" action="#" style="height:100px;">
+                               {% csrf_token %}
+                               {{ part_instance_form }}
+                               <button type="submit" name="changePartInstance" id="b" value="changePartInstance" class="text-gray-900 bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">
+                                   Change
+                               </button>
+                           </form>
+                       </dt>
+                   </div>
+               </dl>
+           {% endif %}
+       </div>
+
+       <!-- Sensor/Machines Tab -->
+       <div class="hidden p-4 bg-white rounded-lg md:p-8 dark:bg-gray-800" id="about" role="tabpanel" aria-labelledby="about-tab">
+           <!-- Sensor/Machines content -->
+       </div>
+
+
+
+       <!-- Other Tab -->
+       <div class="hidden p-4 bg-white rounded-lg md:p-8 dark:bg-gray-800" id="faq" role="tabpanel" aria-labelledby="faq-tab">
+           <dl class="max-w-screen-xl grid-cols-2 gap-8 p-4 mx-auto text-gray-900 sm:grid-cols-2 xl:grid-cols-4 dark:text-white sm:p-8">
+               <div class="flex flex-col items-center justify-center">
+                   <dt class="mb-2 text-3xl font-extrabold">
+                       <button id="toggleButton" name="Export" onclick="location.href = 'newSensor/{{ process.id }}'" class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">
+                           <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                               Sensor Data
+                           </span>
+                       </button>
+                        {% if process.subprocess_set.get.name == "Load and Cut Ply" %}
+                    <button onclick="location.href = 'export-plies-pdf/8'" class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">
+                        <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                            Export PDF for Individual Plies
+                        </span>
+                    </button>
+                    {% endif %}
+                   </dt>
+               </div>    
+           </dl>
+       </div>
+   </div>
+</div>
+</center>
+
+
+ <body>
+
+
+
+<script>
+
+// Global state variables
+let setTimerValue = 0;
+let socket;
+let countdownStarted = false;
+let timerCompleted = false;
+let isWaitingForStart = false;
+let persistedTimerValue = null;  
+
+
+// Initialize WebSocket when document is ready
+$(document).ready(() => {
+    initializeWebSocket();
+});
+
+// WebSocket initialization and connection handling
+function initializeWebSocket() {
+    const pathParts = window.location.pathname.split('/');
+    const roomName = pathParts[pathParts.length - 1];
+		socket = new WebSocket(`ws://${window.location.host}/ws/Main/${roomName}/`);
+    
+    socket.onopen = () => console.log('WebSocket connected');
+    socket.onmessage = handleWebSocketMessage;
+    socket.onerror = (error) => console.error('WebSocket Error:', error);
+    socket.onclose = () => {
+        console.log('WebSocket disconnected. Attempting to reconnect...');
+        setTimeout(initializeWebSocket, 3000);
+    };
+}
+
+// Main WebSocket message handler
+function handleWebSocketMessage(event) {
+    try {
+        const data = JSON.parse(event.data);
+        
+        switch (data.type) {
+            case 'motor_data':
+                const motorData = data.data.motor_loads;
+                console.log("[JS] Motor data received:", motorData);
+                updateMotorStatus(motorData);
+                break;
+            case 'high_temperature_update': 
+                handlePressTemperature(data.data);
+                break;
+            case 'switch_status_update':
+                updateAllSwitchStates(data.status);
+                handleTimerStatus(data.status);
+                break;
+            case 'temperature_update':
+                handleSlaveTemperatures(data);
+                break;
+            case 'temperature_parameter_update':
+                handlePressTemperature(data.temperature_data);
+                handleMouldCoolingTempSet(data.temperature_data);
+                updateTemperatureStatus(data.temperature_data);
+                break;
+            case 'blank_loading_update':
+                handleBlankLoading(data.state);
+                break;
+            case 'mould_cooling_update':
+                console.log('Received mould cooling update:', data.data);
+                handleMouldCoolingUpdate(data.data);
+                break;
+            case 'cooling_temps_set':
+                handleCoolingTempsResponse(data);
+                break;
+            case 'temperature_validation_response':
+            updateTemperatureCheckMarks(data);
+            break;
+        }
+    } catch (error) {
+        console.error('WebSocket error:', error);
+    }
+}
+
+function handlePressTemperature(data) {
+    const tempCheck = document.getElementById('temperature-check');
+    if (tempCheck) {
+        // Use is_matching from the high temperature monitor
+        const isMatching = data.is_matching;
+        tempCheck.textContent = isMatching ? '✔' : '✘';
+        tempCheck.style.color = isMatching ? 'green' : 'red';
+        
+        console.log('Press Temperature Status:', {
+            current: data.current_temp,
+            target: data.target_temp,
+            matching: isMatching
+        });
+    }
+}
+
+
+// Global state variables for temperature tracking
+let setCentreTemp = 0;
+let setSideTemp = 0;
+
+// Load persisted temperatures on page load
+document.addEventListener('DOMContentLoaded', () => {
+    const savedCentreTemp = localStorage.getItem('setCentreTemp');
+    const savedSideTemp = localStorage.getItem('setSideTemp');
+    setTimeout(updateAllMouldCoolingGraphBounds, 1000); // Wait for graphs to initialize
+
+    if (savedCentreTemp) {
+        setCentreTemp = parseInt(savedCentreTemp);
+        document.getElementById('temp-centre-input').value = setCentreTemp;
+    }
+    
+    if (savedSideTemp) {
+        setSideTemp = parseInt(savedSideTemp);
+        document.getElementById('temp-side-input').value = setSideTemp;
+    }
+});
+
+// For setting temperatures
+function setCentreTemperatures() {
+    
+    centreReset = false;  // Clear reset state when setting new temperature
+
+    const tempCentreInput = document.getElementById('temp-centre-input');
+    
+    if (!tempCentreInput) {
+        console.error('Temperature input element not found');
+        return;
+    }
+
+    const tempCentre = parseInt(tempCentreInput.value);
+
+    if (isNaN(tempCentre) || tempCentre < 0 || tempCentre > 65535) {
+        alert('Temperature must be between 0 and 65535');
+        return;
+    }
+
+    // Store in localStorage
+    localStorage.setItem('setCentreTemp', tempCentre.toString());
+    setCentreTemp = tempCentre;
+
+    // Send to server
+    socket.send(JSON.stringify({
+        type: 'control_command',
+        command: 'set_centre_temp',
+        temp_centre: tempCentre
+    }));
+
+    // Update description
+    const centreDescription = document.getElementById('temp-centre-description');
+    if (centreDescription) {
+        centreDescription.textContent = `Setting thermocouple 2 and 5 to ${tempCentre}°C`;
+        centreDescription.style.color = '#007bff';
+    }
+
+    // Update graphs with new lower bound for centre thermocouples
+    updateGraphBounds('temperatureGraph2_mouldCooling', tempCentre);
+    updateGraphBounds('temperatureGraph5_mouldCooling', tempCentre);
+}
+
+function setSideTemperatures() {
+
+    sideReset = false; 
+    const tempSideInput = document.getElementById('temp-side-input');
+    
+    if (!tempSideInput) {
+        console.error('Side temperature input element not found');
+        return;
+    }
+
+    const tempSide = parseInt(tempSideInput.value);
+
+    if (isNaN(tempSide) || tempSide < 0 || tempSide > 65535) {
+        alert('Temperature must be between 0 and 65535');
+        return;
+    }
+
+    // Store in localStorage
+    localStorage.setItem('setSideTemp', tempSide.toString());
+    setSideTemp = tempSide;
+
+    // Send to server
+    socket.send(JSON.stringify({
+        type: 'control_command',
+        command: 'set_side_temp',
+        temp_side: tempSide
+    }));
+
+    // Update description
+    const sideDescription = document.getElementById('temp-side-description');
+    if (sideDescription) {
+        sideDescription.textContent = `Setting thermocouples 1, 3, 4, and 6 to ${tempSide}°C`;
+        sideDescription.style.color = '#007bff';
+    }
+
+    // Update graphs with new lower bound for side thermocouples
+    updateGraphBounds('temperatureGraph1_mouldCooling', tempSide);
+    updateGraphBounds('temperatureGraph3_mouldCooling', tempSide);
+    updateGraphBounds('temperatureGraph4_mouldCooling', tempSide);
+    updateGraphBounds('temperatureGraph6_mouldCooling', tempSide);
+}
+
+let centreReset = false;
+let sideReset = false;
+
+function resetCentreTemperatures() {
+    // Set reset state
+    centreReset = true;
+    
+    // Reset check mark
+    const tempCentreCheck = document.getElementById('temperature-centre-set');
+    if (tempCentreCheck) {
+        tempCentreCheck.textContent = '✘';
+        tempCentreCheck.style.color = 'red';
+    }
+
+    // Reset description to default
+    const centreDescription = document.getElementById('temp-centre-description');
+    if (centreDescription) {
+        centreDescription.textContent = 'Enter the desired temperature for thermocouples 2 and 5.';
+        centreDescription.style.color = '#666';
+    }
+
+    // Remove lower bound from centre thermocouple graphs
+    removeGraphBounds('temperatureGraph2_mouldCooling');
+    removeGraphBounds('temperatureGraph5_mouldCooling');
+}
+
+function resetSideTemperatures() {
+    // Set reset state
+    sideReset = true;
+    
+    // Reset check mark
+    const tempSideCheck = document.getElementById('temperature-side-set');
+    if (tempSideCheck) {
+        tempSideCheck.textContent = '✘';
+        tempSideCheck.style.color = 'red';
+    }
+
+    // Reset description to default
+    const sideDescription = document.getElementById('temp-side-description');
+    if (sideDescription) {
+        sideDescription.textContent = 'Enter the desired temperature for thermocouples 1, 3, 4, and 6.';
+        sideDescription.style.color = '#666';
+    }
+
+    // Remove lower bound from side thermocouple graphs
+    removeGraphBounds('temperatureGraph1_mouldCooling');
+    removeGraphBounds('temperatureGraph3_mouldCooling');
+    removeGraphBounds('temperatureGraph4_mouldCooling');
+    removeGraphBounds('temperatureGraph6_mouldCooling');
+}
+
+// Helper functions for graph bounds
+function updateGraphBounds(graphId, lowerBound) {
+    const chart = Chart.getChart(graphId);
+    if (!chart) return;
+
+    // Add or update lower bound line
+    if (!chart.options.plugins.annotation) {
+        chart.options.plugins.annotation = { annotations: {} };
+    }
+
+    chart.options.plugins.annotation.annotations.lowerBound = {
+        type: 'line',
+        yMin: lowerBound,
+        yMax: lowerBound,
+        borderColor: 'red',
+        borderWidth: 2,
+        label: {
+            content: `Lower Bound: ${lowerBound}°C`,
+            enabled: true
+        }
+    };
+
+    chart.update('none');
+}
+
+function removeGraphBounds(graphId) {
+    const chart = Chart.getChart(graphId);
+    if (!chart) return;
+
+    if (chart.options.plugins.annotation?.annotations?.lowerBound) {
+        delete chart.options.plugins.annotation.annotations.lowerBound;
+        chart.update('none');
+    }
+}
+
+function handleCoolingTempsResponse(data) {
+    if (data.success) {
+        console.log('Cooling temperatures set successfully:', {
+            centre: data.temp_centre,
+            side: data.temp_side
+        });
+    } else {
+        console.error('Failed to set cooling temperatures');
+        resetTemperatureChecks();
+        alert('Failed to set cooling temperatures. Please try again.');
+    }
+}
+
+
+function handleMouldCoolingUpdate(data) {
+    // Fan Status
+    const fansCheck = document.getElementById('fans-check');
+    if (fansCheck) {
+        const bothFansActive = data.fan1_state && data.fan2_state;
+        fansCheck.textContent = bothFansActive ? '✔' : '✘';
+        fansCheck.style.color = bothFansActive ? 'green' : 'red';
+    }
+
+    // Centre Temperature
+    if (data.current_temp_centre !== null && data.current_temp_centre !== undefined) {
+        const plcCentreTemp = Math.floor(Number(data.current_temp_centre));
+        const centreTempMatches = plcCentreTemp === setCentreTemp;
+        
+        const tempCentreCheck = document.getElementById('temperature-centre-set');
+        const centreDescription = document.getElementById('temp-centre-description');
+
+        if (!centreReset) {  // Only update if not in reset state
+            if (tempCentreCheck && setCentreTemp > 0) {
+                tempCentreCheck.textContent = centreTempMatches ? '✔' : '✘';
+                tempCentreCheck.style.color = centreTempMatches ? 'green' : 'red';
+            }
+
+            if (centreDescription && setCentreTemp > 0) {
+                centreDescription.textContent = `Thermocouple 2 and 5 are currently at ${plcCentreTemp}°C`;
+                centreDescription.style.color = centreTempMatches ? 'green' : '#666';
+            }
+        }
+    }
+
+    // Side Temperature
+    if (data.current_temp_side !== null && data.current_temp_side !== undefined) {
+        const plcSideTemp = Math.floor(Number(data.current_temp_side));
+        const sideTempMatches = plcSideTemp === setSideTemp;
+        
+        const tempSideCheck = document.getElementById('temperature-side-set');
+        const sideDescription = document.getElementById('temp-side-description');
+
+        if (!sideReset) {  // Only update if not in reset state
+            if (tempSideCheck && setSideTemp > 0) {
+                tempSideCheck.textContent = sideTempMatches ? '✔' : '✘';
+                tempSideCheck.style.color = sideTempMatches ? 'green' : 'red';
+            }
+
+            if (sideDescription && setSideTemp > 0) {
+                sideDescription.textContent = `Thermocouples 1, 3, 4, and 6 are currently at ${plcSideTemp}°C`;
+                sideDescription.style.color = sideTempMatches ? 'green' : '#666';
+            }
+        }
+    }
+
+    // 4. Check Slave Temperatures
+    if (data.temperatureData) {
+        // Get all slave temperatures
+        const slave1 = Number(data.temperatureData.slave1[0]);
+        const slave2 = Number(data.temperatureData.slave2[0]);
+        const slave3 = Number(data.temperatureData.slave3[0]);
+        const slave4 = Number(data.temperatureData.slave4[0]);
+        const slave5 = Number(data.temperatureData.slave5[0]);
+        const slave6 = Number(data.temperatureData.slave6[0]);
+
+        // Log current temperatures
+        console.log('Current Temperatures:', {
+            side: {
+                slave1: slave1,
+                slave3: slave3,
+                slave4: slave4,
+                slave6: slave6,
+                target: setSideTemp
+            },
+            centre: {
+                slave2: slave2,
+                slave5: slave5,
+                target: setCentreTemp
+            }
+        });
+
+        // Check if side thermocouples are within range
+        const sideSlavesInRange = setSideTemp > 0 && 
+            slave1 <= setSideTemp &&
+            slave3 <= setSideTemp &&
+            slave4 <= setSideTemp &&
+            slave6 <= setSideTemp;
+
+        // Check if centre thermocouples are within range
+        const centreSlavesInRange = setCentreTemp > 0 &&
+            slave2 <= setCentreTemp &&
+            slave5 <= setCentreTemp;
+
+        // Update lower bound check mark
+        const lowerBoundCheck = document.getElementById('lower-bound-temperature-check');
+        if (lowerBoundCheck) {
+            const allInRange = sideSlavesInRange && centreSlavesInRange;
+            lowerBoundCheck.textContent = allInRange ? '✔' : '✘';
+            lowerBoundCheck.style.color = allInRange ? 'green' : 'red';
+
+            // Log status for debugging
+            console.log('Temperature Bounds Check:', {
+                sideSlavesInRange,
+                centreSlavesInRange,
+                allInRange,
+                sideTarget: setSideTemp,
+                centreTarget: setCentreTemp
+            });
+        }
+    }
+}
+
+function handleSlaveTemperatures(data) {
+    const upperBound = data.bounds?.upper;
+    const lowerBound = data.bounds?.lower;
+    
+    const isInRange = Object.entries(data.temperatureData || {}).every(([key, value]) => {
+        if (!key.startsWith('slave')) return true;
+        const temp = Array.isArray(value) ? parseFloat(value[0]) : parseFloat(value);
+        return !isNaN(temp) && temp >= lowerBound && temp <= upperBound;
+    });
+    
+    const tempConsistentCheck = document.getElementById('temperature-consistent-check');
+    if (tempConsistentCheck) {
+        console.log('Temperature Range Check:', {
+            inRange: isInRange,
+            bounds: { upper: upperBound, lower: lowerBound }
+        });
+        
+        tempConsistentCheck.textContent = isInRange ? '✔' : '✘';
+        tempConsistentCheck.style.color = isInRange ? 'green' : 'red';
+    }
+}
+
+
+function updateTemperatureStatus(inputId, checkId, targetTemp) {
+    const tempInput = document.getElementById(inputId);
+    const tempCheck = document.getElementById(checkId);
+    
+    if (tempCheck && tempInput && tempInput.value) {
+        const isMatching = Math.floor(Number(tempInput.value)) === targetTemp;
+        tempCheck.textContent = isMatching ? '✔' : '✘';
+        tempCheck.style.color = isMatching ? 'green' : 'red';
+    }
+}
+
+
+function updateTemperatureDescriptions(centreTempValue, sideTempValue) {
+    const centreDescription = document.getElementById('temp-centre-description');
+    const sideDescription = document.getElementById('temp-side-description');
+    
+    if (centreDescription) {
+        centreDescription.textContent = `Thermocouple 2 and 5 are set to ${centreTempValue}°C, marking the completion of this stage of the process.`;
+        centreDescription.style.color = '#007bff';
+    }
+    
+    if (sideDescription) {
+        sideDescription.textContent = `Thermocouples 1, 3, 4, and 6 are set to ${sideTempValue}°C, marking the completion of this stage of the process.`;
+        sideDescription.style.color = '#007bff';
+    }
+}
+
+
+
+function handleBlankLoading(state) {
+    const blankLoadedCheck = document.getElementById('blank-loaded-check');
+    if (blankLoadedCheck) {
+        console.log('Blank loading state:', state);
+        blankLoadedCheck.textContent = state ? '✔' : '✘';
+        blankLoadedCheck.style.color = state ? 'green' : 'red';
+    }
+}
+
+function handleTimerStatus(status) {
+    console.log('Timer Status:', status);
+    const timerDisplay = document.getElementById('timer_blankPressed');
+    const timerCheck = document.getElementById('timer-check');
+    
+    if (!timerDisplay || !timerCheck) return;
+
+    // Store timer_total when it's set
+    if (status.timer_total > 0 && persistedTimerValue === null) {
+        persistedTimerValue = status.timer_total;
+        console.log('Timer value persisted:', persistedTimerValue);
+    }
+
+    // Display persisted time until timer starts
+    if (!countdownStarted && persistedTimerValue) {
+        const totalSeconds = Math.floor(persistedTimerValue / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        timerDisplay.textContent = `00:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    // Start countdown when timer_et becomes active
+    if (status.timer_et !== null && status.timer_et > 0) {
+        console.log('Timer ET active:', status.timer_et);
+        countdownStarted = true;
+        
+        // Use persisted total time for calculation
+        const totalMilliseconds = persistedTimerValue || status.timer_total;
+        const elapsedMilliseconds = status.timer_et;
+        const remainingMilliseconds = Math.max(0, totalMilliseconds - elapsedMilliseconds);
+        
+        console.log('Timer Running:', {
+            total: totalMilliseconds,
+            elapsed: elapsedMilliseconds,
+            remaining: remainingMilliseconds
+        });
+        
+        // Convert to minutes and seconds
+        const totalSeconds = Math.floor(remainingMilliseconds / 1000);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        
+    
+    }
+    
+    // Handle timer completion
+    if (countdownStarted && status.timer_et === 0) {
+        console.log('Timer completed');
+        timerCompleted = true;
+        countdownStarted = false;
+        isWaitingForStart = false;
+        persistedTimerValue = null;  // Reset persisted value
+        timerDisplay.textContent = '00:00:00 (Completed)';
+        timerCheck.textContent = '✔';
+        timerCheck.style.color = 'green';
+    }
+}
+
+let timerCompleted = false;  
+
+// Function to set the timer
+function setTimer() {
+    console.log('Setting new timer');
+    const setTimerValue = parseInt(document.getElementById('timer-input').value);
+
+    // Set the timer duration and update the UI with a message
+    const timerStatus = document.getElementById('timer-status');
+    timerStatus.textContent = `Timer is set to ${setTimerValue} seconds`;
+
+    console.log('New timer value:', setTimerValue);
+    
+    // Update the UI to show 00:00:00 (Completed) immediately
+    updateTimerUI('00:00:00 (Completed)');
+    
+    // Send the timer value to the server
+    const milliseconds = setTimerValue * 1000;
+    socket.send(JSON.stringify({
+        type: 'control_command',
+        command: 'set_timer',
+        timer_value: milliseconds
+    }));
+}
+
+// Function to update the timer display in the UI
+function updateTimerUI(time) {
+    const timerDisplay = document.getElementById('timer-display');
+    timerDisplay.textContent = time;
+}
+
+
+function resetTimer() {
+    console.log('Resetting timer');
+    timerCompleted = false;
+    countdownStarted = false;
+    isWaitingForStart = false;
+    setTimerValue = 0;
+    persistedTimerValue = null;  // Clear persisted value
+    
+    document.getElementById('timer-input').value = 0;
+    document.getElementById('timer_blankPressed').textContent = '00:00:00';
+    document.getElementById('timer-description').textContent = '';
+    
+    const timerCheck = document.getElementById('timer-check');
+    if (timerCheck) {
+        timerCheck.textContent = '✘';
+        timerCheck.style.color = 'red';
+    }
+    
+    console.log('Sending reset command to server');
+    socket.send(JSON.stringify({
+        type: 'control_command',
+        command: 'set_timer',
+        timer_value: 0
+    }));
+}
+
+
+// function updateTimerUI(seconds) {
+//     const minutes = Math.floor(seconds / 60);
+//     const remainingSeconds = seconds % 60;
+//     const formattedTime = `00:${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+    
+//     document.getElementById('timer_blankPressed').textContent = formattedTime;
+//     document.getElementById('timer-description').textContent = 
+//         `The timer is set to ${seconds} seconds, marking the completion of this stage of the process.`;
+        
+//     console.log('Timer UI updated:', {
+//         seconds: seconds,
+//         display: formattedTime,
+//         persistedValue: persistedTimerValue
+//     });
+// }
+
+function resetTimerCheck() {
+    const timerCheck = document.getElementById('timer-check');
+    if (timerCheck) {
+        timerCheck.textContent = '✘';
+        timerCheck.style.color = 'red';
+    }
+}
+
+// Switch State Handling
+function updateAllSwitchStates(status) {
+    const switchMappings = {
+        platten_down: {
+            switchIds: ['platten-down-switch'],
+            checkIds: ['platten-down-check'],
+            dependencies: ['upper-bound-temperature-check']
+        },
+        platten_up: {
+            switchIds: ['platten-up-switch'],
+            checkIds: ['platten-up-check'],
+            dependencies: []
+        },
+        shuttle_home: {
+            switchIds: ['shuttle-switch'],
+            checkIds: ['shuttle-check'],
+            dependencies: []
+        },
+        shuttle_press: {
+            switchIds: ['shuttle-press-switch'],
+            checkIds: ['shuttle-press-check'],
+            dependencies: []
+        }
+    };
+
+    Object.entries(status).forEach(([key, value]) => {
+        if (switchMappings[key]) {
+            const mapping = switchMappings[key];
+            mapping.switchIds.forEach(id => updateAllElementsWithId(id, value, true));
+            mapping.checkIds.forEach(id => updateAllElementsWithId(id, value, false));
+            mapping.dependencies.forEach(id => updateAllElementsWithId(id, value, false));
+        }
+    });
+}
+
+function updateAllElementsWithId(elementId, isActive, isSwitch) {
+    document.querySelectorAll(`#${elementId}`).forEach(element => {
+        if (isSwitch) {
+            element.style.backgroundColor = isActive ? '#28a745' : '#FFBF00';
+        } else {
+            element.textContent = isActive ? '✔' : '✘';
+            element.style.color = isActive ? 'green' : 'red';
+        }
+    });
+}
+
+ // Function to update motor status colors
+ function updateMotorStatus(data) {
+    console.log("[JS] Updating motor status with data:", data);
+    
+    // Find all elements with motor1Status and motor3Status IDs
+    const motor1Elements = document.querySelectorAll('#motor1Status');
+    const motor3Elements = document.querySelectorAll('#motor3Status');
+    
+    console.log("[JS] Found motor elements - Motor1:", motor1Elements.length, "Motor3:", motor3Elements.length);
+    
+    // Update all Motor 1 elements
+    motor1Elements.forEach(element => {
+        if (data.Motor1ErrorStatus === true) {  // Changed condition
+            console.log("[JS] Setting Motor 1 to red (error)");
+            element.style.backgroundColor = '#EF4444';
+        } else {
+            console.log("[JS] Setting Motor 1 to green (no error)");
+            element.style.backgroundColor = '#10B981';
+        }
+    });
+    
+    // Update all Motor 3 elements
+    motor3Elements.forEach(element => {
+        if (data.Motor3ErrorStatus === true) {  // Changed condition
+            console.log("[JS] Setting Motor 3 to red (error)");
+            element.style.backgroundColor = '#EF4444';
+        } else {
+            console.log("[JS] Setting Motor 3 to green (no error)");
+            element.style.backgroundColor = '#10B981';
+        }
+    });
+    
+    // Log if no elements were found
+    if (motor1Elements.length === 0 || motor3Elements.length === 0) {
+        console.warn("[JS] Some motor elements not found",
+            "Motor1:", motor1Elements.length,
+            "Motor3:", motor3Elements.length);
+    }
+}
+</script>
+
+
+</body> 
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentUrl = window.location.pathname;
+        const currentProcessId = parseInt(currentUrl.split('/').pop());
+        
+        function navigateToProcess(newProcessId) {
+            // Use template literal correctly
+            window.location.href = `/${newProcessId}`;
+        }
+        
+        document.getElementById('prevProcess').addEventListener('click', function() {
+            navigateToProcess(currentProcessId - 1);
+        });
+        
+        document.getElementById('nextProcess').addEventListener('click', function() {
+            navigateToProcess(currentProcessId + 1);
+        });
+        
+        fetch(`/api/current-process-id/${currentProcessId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.current_process_id === 1) {
+                    document.getElementById('prevProcess').disabled = true;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    });
+</script>
+
+    </body>
+
+
+    <script type="text/javascript">
+$(document).ready(function () {
+    const pathParts = window.location.pathname.split('/');
+    const roomName = pathParts[pathParts.length - 1];
+    
+    const socket = new WebSocket(`ws://${window.location.host}/ws/Main/SubProcess/${roomName}/`);
+
+    
+    socket.onopen = function (event) {
+        console.log('WebSocket connected for room:', roomName);
+    };
+    
+    socket.onmessage = function (event) {
+    console.log('Raw WebSocket message received:', event.data);
+    try {
+        const data = JSON.parse(event.data);
+        console.log('Parsed message data:', data);
+        
+        if (data.type === 'update_message' && data.message) {
+            const message = data.message;
+            console.log('Processing update for:', message.Name);
+            console.log('Fields:', message.fields);
+            
+            // Update subprocess card
+            const divId = message.Name.replace(/[^a-zA-Z0-9]/g, '_');
+            const $subProcessDiv = $(`#${divId}`);
+            if ($subProcessDiv.length) {
+                updateAll($subProcessDiv, message.fields);
+            }
+            
+            // Update totals if present
+            if (message.fields.isLastCard) {
+                console.log('Updating totals with:', message.fields);
+                updateLastCard(message.fields);
+            }
+        }
+    } catch (error) {
+        console.error('Error processing message:', error);
+        console.error('Raw message:', event.data);
+    }
+};
+
+    function updateAll($div, fields) {
+        // Update status if changed
+        if (fields.Status !== undefined) {
+            updateStatus($div, fields.Status);
+        }
+
+        // Update table fields
+        updateTableFields($div, fields);
+
+        // Update VSM values
+        updateVSMValues($div, fields);
+
+        // Update last card if applicable
+        if (fields.isLastCard) {
+            updateLastCard(fields);
+        }
+
+        console.log("Updated UI for:", $div.attr('id'));
+    }
+
+    function updateStatus($div, status) {
+        const statusMap = {
+            0: ['Waiting', 'statusWaiting'],
+            1: ['In Progress', 'statusInProgress'],
+            2: ['Approved', 'statusPass'],
+            3: ['Error', 'statusError']
+        };
+        
+        if (status in statusMap) {
+            const [text, className] = statusMap[status];
+            const $status = $div.find('.status');
+            
+            if ($status.length) {
+                console.log("Updating status to:", text);
+                $status
+                    .removeClass('statusWaiting statusInProgress statusPass statusError')
+                    .addClass(className)
+                    .find('p')
+                    .text(text);
+            }
+        }
+    }
+function updateTableFields($div, fields) {
+    console.log("Debug - Received fields:", fields);
+    for (var field in fields) {
+        if (field === 'Process Time' || field === 'Interface Time') {
+            const timerKey = `table-${field.toLowerCase().replace(/\s+/g, '')}-timer-id`;
+            const $timeCell = $div.find(`th:contains('${field}')`).next();
+            
+            if (fields.Status === 1) {
+                // Only start timer if it's not already running
+                if (!$div.data(timerKey)) {
+                    const startTime = fields[field] || "0:00:00";
+                    $timeCell.text(startTime);
+                    startTableTimer($div, field, $timeCell, startTime);
+                }
+            } else {
+                // Stop timer if status is not 1
+                stopTableTimer($div, field);
+                if (fields[field]) {
+                    $timeCell.text(fields[field]);
+                }
+            }
+        } else {
+            var $th = $div.find(`th:contains('${field}')`);
+            if ($th.length > 0) {
+                $th.next().text(fields[field]);
+            }
+        }
+    }
+}
+
+function startTableTimer($div, timeField, $timeCell, initialTime) {
+    const timerKey = `table-${timeField.toLowerCase().replace(/\s+/g, '')}-timer-id`;
+    
+    // Clear any existing timer
+    stopTableTimer($div, timeField);
+    
+    // Parse initial time
+    let [hours, minutes, seconds] = initialTime.split(':').map(Number);
+    if (isNaN(hours)) hours = 0;
+    if (isNaN(minutes)) minutes = 0;
+    if (isNaN(seconds)) seconds = 0;
+    
+    // Start the timer
+    const timerId = setInterval(() => {
+        seconds++;
+        if (seconds >= 60) {
+            seconds = 0;
+            minutes++;
+            if (minutes >= 60) {
+                minutes = 0;
+                hours++;
+            }
+        }
+        $timeCell.text(`${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    }, 1000);
+    
+    // Store timer ID
+    $div.data(timerKey, timerId);
+}
+
+function stopTableTimer($div, timeField) {
+    const timerKey = `table-${timeField.toLowerCase().replace(/\s+/g, '')}-timer-id`;
+    const timerId = $div.data(timerKey);
+    if (timerId) {
+        clearInterval(timerId);
+        $div.removeData(timerKey);
+    }
+}
+
+function updateVSMValues($div, fields) {
+    const $allVSMValues = $div.find('p.VSMValue');
+    const divId = $div.attr('id');
+    console.log('Processing div ID:', divId);
+    const subprocessName = fields.Name;
+    console.log('Subprocess Name:', subprocessName);
+    
+    // Special handling for Cut Ply
+    if (divId === 'Load_and_Cut_Ply') {
+        console.log('Handling Load and Cut Ply, status:', fields.Status);
+        if (fields.Status === 1) {
+            if (!$div.data('vsm-process-timer-id')) {
+                const startTime = fields.processTime || fields.Process_Time || "0:00:00";
+                console.log('Starting process timer with:', startTime);
+                $allVSMValues.eq(1).text(startTime);
+                startVSMTimer($div, 'process', $allVSMValues.eq(1), startTime, fields);
+            }
+        } else {
+            console.log('Stopping process timer');
+            stopVSMTimer($div, 'process');
+            if (fields.processTime || fields.Process_Time) {
+                const finalTime = fields.processTime || fields.Process_Time;
+                $allVSMValues.eq(1).text(finalTime);
+            }
+        }
+        updateCostValues($allVSMValues, fields);
+    } 
+    // Special handling for Pickup Initial Ply
+    else if (divId === 'Pickup_Initial_Ply') {
+        console.log('Handling Pickup Initial Ply, status:', fields.Status);
+        if (fields.Status === 1) {
+            if (!$div.data('vsm-interface-timer-id')) {
+                const startTime = fields.interfaceTime || fields.Interface_Time || "0:00:00";
+                console.log('Starting interface timer with:', startTime);
+                $allVSMValues.eq(0).text(startTime);
+                startVSMTimer($div, 'interface', $allVSMValues.eq(0), startTime, fields);
+            }
+        } else {
+            console.log('Stopping interface timer');
+            stopVSMTimer($div, 'interface');
+            if (fields.interfaceTime || fields.Interface_Time) {
+                const finalTime = fields.interfaceTime || fields.Interface_Time;
+                $allVSMValues.eq(0).text(finalTime);
+            }
+        }
+        updateCostValues($allVSMValues, fields);
+    } 
+    else if (divId === 'Pickup_Ply___Weld') {
+        console.log('Handling Pickup Ply & Weld, status:', fields.Status);
+        if (fields.Status === 1) {
+            if (!$div.data('vsm-process-timer-id')) {
+                const startTime = fields.processTime || fields.Process_Time || "0:00:00";
+                console.log('Starting process timer with:', startTime);
+                $allVSMValues.eq(1).text(startTime);
+                startVSMTimer($div, 'process', $allVSMValues.eq(1), startTime, fields);
+            }
+        } else {
+            console.log('Stopping process timer');
+            stopVSMTimer($div, 'process');
+            if (fields.processTime || fields.Process_Time) {
+                const finalTime = fields.processTime || fields.Process_Time;
+                $allVSMValues.eq(1).text(finalTime);
+            }
+        }
+        updateCostValues($allVSMValues, fields);
+    }
+    else if (divId === 'Ply_Placed') {
+        console.log('Handling Ply Placed, status:', fields.Status);
+        if (fields.Status === 1) {
+            if (!$div.data('vsm-interface-timer-id')) {
+                const startTime = fields.interfaceTime || fields.Interface_Time || "0:00:00";
+                console.log('Starting interface timer with:', startTime);
+                $allVSMValues.eq(0).text(startTime);
+                startVSMTimer($div, 'interface', $allVSMValues.eq(0), startTime, fields);
+            }
+        } else {
+            console.log('Stopping interface timer');
+            stopVSMTimer($div, 'interface');
+            if (fields.interfaceTime || fields.Interface_Time) {
+                const finalTime = fields.interfaceTime || fields.Interface_Time;
+                $allVSMValues.eq(0).text(finalTime);
+            }
+        }
+        updateCostValues($allVSMValues, fields);
+    }
+    else if (divId === 'Ply_Waiting') {
+        console.log('Handling Ply Waiting, status:', fields.Status);
+        if (fields.Status === 1) {
+            if (!$div.data('vsm-interface-timer-id')) {
+                const startTime = fields.interfaceTime || fields.Interface_Time || "0:00:00";
+                console.log('Starting interface timer with:', startTime);
+                $allVSMValues.eq(0).text(startTime);
+                startVSMTimer($div, 'interface', $allVSMValues.eq(0), startTime, fields);
+            }
+        } else {
+            console.log('Stopping interface timer');
+            stopVSMTimer($div, 'interface');
+            if (fields.interfaceTime || fields.Interface_Time) {
+                const finalTime = fields.interfaceTime || fields.Interface_Time;
+                $allVSMValues.eq(0).text(finalTime);
+            }
+        }
+        updateCostValues($allVSMValues, fields);
+    }
+
+    // Update LastCard if needed
+    if (fields.isLastCard) {
+        updateLastCard(fields);
+    }
+}
+
+function startVSMTimer($div, type, $element, initialTime, fields) {
+    // Don't start if timer is already running
+    if ($div.data(`vsm-${type}-timer-id`)) {
+        return;
+    }
+    
+    // Initialize VSM timer values - always start from initialTime
+    let [vsmHours, vsmMinutes, vsmSeconds] = initialTime.split(':').map(Number);
+    if (isNaN(vsmHours)) vsmHours = 0;
+    if (isNaN(vsmMinutes)) vsmMinutes = 0;
+    if (isNaN(vsmSeconds)) vsmSeconds = 0;
+    
+    // Initialize LastCard timer values
+    const $lastCard = $('.lastCard');
+    const lastCardIndex = type === 'interface' ? 0 : 1;
+    const lastCardTime = $lastCard.find('p').eq(lastCardIndex).text();
+    let [lastCardHours, lastCardMinutes, lastCardSeconds] = lastCardTime ? 
+        lastCardTime.split(':').map(Number) : [0, 0, 0];
+    
+    const divId = $div.attr('id');
+    
+    const timerId = setInterval(() => {
+        // Update VSM time - always count from 0 for individual subprocesses
+        vsmSeconds++;
+        if (vsmSeconds >= 60) {
+            vsmSeconds = 0;
+            vsmMinutes++;
+            if (vsmMinutes >= 60) {
+                vsmMinutes = 0;
+                vsmHours++;
+            }
+        }
+        
+        // Update LastCard time separately
+        lastCardSeconds++;
+        if (lastCardSeconds >= 60) {
+            lastCardSeconds = 0;
+            lastCardMinutes++;
+            if (lastCardMinutes >= 60) {
+                lastCardMinutes = 0;
+                lastCardHours++;
+            }
+        }
+        
+        const vsmTimeStr = `${vsmHours}:${vsmMinutes.toString().padStart(2, '0')}:${vsmSeconds.toString().padStart(2, '0')}`;
+        const lastCardTimeStr = `${lastCardHours}:${lastCardMinutes.toString().padStart(2, '0')}:${lastCardSeconds.toString().padStart(2, '0')}`;
+        
+        // For process time
+        if (type === 'process') {
+            if (divId === 'Load_and_Cut_Ply' || divId === 'Pickup_Ply___Weld') {
+                // Update VSM display with individual time
+                $element.text(vsmTimeStr);
+                // Update LastCard with accumulated time
+                $lastCard.find('p').eq(1).text(lastCardTimeStr);
+            }
+        }
+        // For interface time
+        else if (type === 'interface') {
+            if (divId === 'Ply_Waiting' || divId === 'Ply_Placed' || divId === 'Pickup_Initial_Ply') {
+                // Update VSM display with individual time
+                $element.text(vsmTimeStr);
+                // Update LastCard with accumulated time
+                $lastCard.find('p').eq(0).text(lastCardTimeStr);
+            }
+        }
+    }, 1000);
+    
+    $div.data(`vsm-${type}-timer-id`, timerId);
+}
+
+function stopVSMTimer($div, type) {
+    const timerId = $div.data(`vsm-${type}-timer-id`);
+    if (timerId) {
+        clearInterval(timerId);
+        $div.removeData(`vsm-${type}-timer-id`);
+    }
+}
+
+function updateCostValues($allVSMValues, fields) {
+    if (fields.materialWastage) {
+        $allVSMValues.eq(2).text('£' + fields.materialWastage.replace('£', ''));
+    }
+    if (fields.labourSumCost) {
+        $allVSMValues.eq(3).text('£' + fields.labourSumCost.replace('£', ''));
+    }
+    if (fields.powerCost) {
+        $allVSMValues.eq(4).text('£' + fields.powerCost.replace('£', ''));
+    }
+    if (fields.totalCost) {
+        $allVSMValues.eq(5).text('£' + fields.totalCost.replace('£', ''));
+    }
+}
+
+function updateLastCard(fields) {
+    const $lastCard = $('.lastCard');
+    if (!$lastCard.length) return;
+    
+    const $allParagraphs = $lastCard.find('p');
+    
+    // Check for any active interface timers
+    const hasActiveInterfaceTimer = [
+        'Ply_Waiting',
+        'Ply_Placed',
+        'Pickup_Initial_Ply'
+    ].some(id => $(`#${id}`).data('vsm-interface-timer-id'));
+
+    // Check for any active process timers
+    const hasActiveProcessTimer = [
+        'Pickup_Ply___Weld',
+        'Load_and_Cut_Ply'
+    ].some(id => $(`#${id}`).data('vsm-process-timer-id'));
+    
+    // Only update times if no active timers
+    if (!hasActiveInterfaceTimer && fields.total_interface_time) {
+        $allParagraphs.eq(0).text(fields.total_interface_time);
+    }
+    
+    if (!hasActiveProcessTimer && fields.total_process_time) {
+        $allParagraphs.eq(1).text(fields.total_process_time);
+    }
+    
+    // Always update cost values
+    if (fields.total_material_wastage) {
+        $allParagraphs.eq(2).text(fields.total_material_wastage);
+    }
+    if (fields.total_labour_cost) {
+        $allParagraphs.eq(3).text(fields.total_labour_cost);
+    }
+    if (fields.total_power_cost) {
+        $allParagraphs.eq(4).text(fields.total_power_cost);
+    }
+    if (fields.total_cost) {
+        $allParagraphs.eq(5).text(fields.total_cost);
+    }
+}
+
+
+function startLastCardTimer($lastCard, type, initialTime) {
+    stopLastCardTimer($lastCard, type);
+    
+    // Parse initial time
+    let [hours, minutes, seconds] = initialTime.split(':').map(Number);
+    if (isNaN(hours)) hours = 0;
+    if (isNaN(minutes)) minutes = 0;
+    if (isNaN(seconds)) seconds = 0;
+    
+    // Start new timer
+    const timerId = setInterval(() => {
+        seconds++;
+        if (seconds >= 60) {
+            seconds = 0;
+            minutes++;
+            if (minutes >= 60) {
+                minutes = 0;
+                hours++;
+            }
+        }
+        const currentTime = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Update the appropriate LastCard field based on type
+        if (type === 'interface') {
+            $lastCard.find('p').eq(0).text(currentTime);
+        } else if (type === 'process') {
+            $lastCard.find('p').eq(1).text(currentTime);
+        }
+    }, 1000);
+    
+    // Store timer ID
+    $lastCard.data(`lastcard-${type}-timer-id`, timerId);
+}
+
+function stopLastCardTimer($lastCard, type) {
+    const timerId = $lastCard.data(`lastcard-${type}-timer-id`);
+    if (timerId) {
+        clearInterval(timerId);
+        $lastCard.removeData(`lastcard-${type}-timer-id`);
+    }
+}
+
+    socket.onclose = function (event) {
+        console.log('WebSocket disconnected. Attempting to reconnect...');
+        setTimeout(() => {
+            window.location.reload();
+        }, 2000);
+    };
+
+    socket.onerror = function (error) {
+        console.error('WebSocket error:', error);
+    };
+});
+
+
+</script>
+
+<script>
+const createTemperatureChart = (id, title, upperBound, lowerBound) => {
+    const annotations = {};
+    
+    if (upperBound) {
+        annotations.upperBound = {
+            type: 'line',
+            yMin: {% get_temp1 %} + 5,
+            yMax: {% get_temp1 %} + 5,
+            borderColor: 'red',
+            borderWidth: 1,
+            label: {
+                content: 'Upper Bound',
+                enabled: true,
+                position: 'left'
+            }
+        };
+    }
+    
+    if (lowerBound) {
+        annotations.lowerBound = {
+            type: 'line',
+            yMin: lowerBound,
+            yMax: lowerBound,
+            borderColor: 'blue',
+            borderWidth: 1,
+            label: {
+                content: 'Lower Bound',
+                enabled: true,
+                position: 'left'
+            }
+        };
+    }
+
+    return new Chart(document.getElementById(id), {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: title,
+                data: [],
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: false,
+                tension: 0.1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    title: { display: true, text: 'Temperature (°C)' },
+                    min: 0,
+                    max: {% get_temp1 %} + 40,
+                },
+                x: {
+                    title: { display: true, text: 'Time' },
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                        tooltipFormat: 'll HH:mm:ss',
+                        displayFormats: { second: 'HH:mm:ss' }
+                    },
+                    ticks: { source: 'auto', maxTicksLimit: 10 }
+                }
+            },
+            plugins: {
+                annotation: {
+                    annotations: annotations
+                },
+                title: {
+                    display: true,
+                    text: title
+                }
+            }
+        }
+    });
+};
+
+// Initialize temperature charts for all subprocesses
+const allGraphs = [
+    // Blank Pressed (both bounds)
+    createTemperatureChart('temperatureGraph1', 'Thermocouple 1', true, true),
+    createTemperatureChart('temperatureGraph2', 'Thermocouple 2', true, true),
+    createTemperatureChart('temperatureGraph3', 'Thermocouple 3', true, true),
+    createTemperatureChart('temperatureGraph4', 'Thermocouple 4', true, true),
+    createTemperatureChart('temperatureGraph5', 'Thermocouple 5', true, true),
+    createTemperatureChart('temperatureGraph6', 'Thermocouple 6', true, true),
+    // Mould Cooling (only lower bound set to 100°C)
+    createTemperatureChart('temperatureGraph1_mouldCooling', 'Thermocouple 1', false, 100),
+    createTemperatureChart('temperatureGraph2_mouldCooling', 'Thermocouple 2', false, 100),
+    createTemperatureChart('temperatureGraph3_mouldCooling', 'Thermocouple 3', false, 100),
+    createTemperatureChart('temperatureGraph4_mouldCooling', 'Thermocouple 4', false, 100),
+    createTemperatureChart('temperatureGraph5_mouldCooling', 'Thermocouple 5', false, 100),
+    createTemperatureChart('temperatureGraph6_mouldCooling', 'Thermocouple 6', false, 100),
+    // Temperature Reached and Platten Down (only upper bound)
+    createTemperatureChart('temperatureGraph1_reached', 'Thermocouple 1', true, false),
+    createTemperatureChart('temperatureGraph2_reached', 'Thermocouple 2', true, false),
+    createTemperatureChart('temperatureGraph3_reached', 'Thermocouple 3', true, false),
+    createTemperatureChart('temperatureGraph4_reached', 'Thermocouple 4', true, false),
+    createTemperatureChart('temperatureGraph5_reached', 'Thermocouple 5', true, false),
+    createTemperatureChart('temperatureGraph6_reached', 'Thermocouple 6', true, false)
+];
+
+
+
+const updateTemperatureData = (data) => {
+    const now = new Date();
+    const timeLabel = now.toISOString();
+
+    allGraphs.forEach((chart, index) => {
+        const slaveKey = `slave${(index % 6) + 1}`;
+        let newDataPoint;
+
+        // Assign dummy temperature values based on thermocouple number
+        switch ((index % 6) + 1) {
+            case 1:
+            case 4:
+                newDataPoint = 100;  // Thermocouples 1 and 4
+                break;
+            case 2:
+            case 5:
+                newDataPoint = 100;  // Thermocouples 2 and 5
+                break;
+            case 3:
+            case 6:
+                newDataPoint = 80;  // Thermocouples 3 and 6
+                break;
+            default:
+                newDataPoint = 0;    // Default value (if any)
+        }
+
+        // Add new data point for each chart
+        chart.data.labels.push(timeLabel);
+        chart.data.datasets[0].data.push({ x: timeLabel, y: newDataPoint });
+
+        // Limit the number of data points to keep the chart readable
+        const maxDataPoints = 60; // 1 minute of data at 1 second intervals
+        if (chart.data.labels.length > maxDataPoints) {
+            chart.data.labels.shift();
+            chart.data.datasets[0].data.shift();
+        }
+
+        // Update the chart
+        chart.update();
+    });
+};
+
+
+// WebSocket connection setup
+const connectWebSocket = () => {
+    const pathParts = window.location.pathname.split('/');
+    const roomName = pathParts[pathParts.length - 1];
+    const socket = new WebSocket(`ws://${window.location.host}/ws/Main/OPCUA/${roomName}/`);
+
+    socket.onmessage = (event) => {
+        console.log("Received data:", event.data);
+        try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'pressure_update') {
+                updatePressureData(data.pressureData);
+            }
+            else if (data.type === 'temperature_update') {
+                updateTemperatureData(data.temperatureData);
+            }
+        } catch (error) {
+            console.error("Error processing message:", error);
+        }
+    };
+
+    socket.onclose = (event) => {
+        console.log('WebSocket closed. Code:', event.code, 'Reason:', event.reason);
+        setTimeout(connectWebSocket, 5000);
+    };
+
+    socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    return socket;
+};
+
+// Initialize pressure chart
+const pressureChart = new Chart(document.getElementById('pressureGraph_blankPressed'), {
+    type: 'line',
+    data: {
+        datasets: [{
+            label: 'Pressure (Bar)',
+            data: [],
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            fill: true,
+            tension: 0.1
+        }]
+    },
+    options: {
+        scales: {
+            y: {
+                title: {
+                    display: true,
+                    text: 'Pressure (Bar)'
+                },
+                min: 0,
+                max: 10
+            },
+            x: {
+                type: 'time',
+                time: {
+                    unit: 'second',
+                    tooltipFormat: 'HH:mm:ss',
+                    displayFormats: {
+                        second: 'HH:mm:ss'
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Time'
+                }
+            }
+        },
+        animation: {
+            duration: 0
+        }
+    }
+});
+
+// Function to update pressure data
+const updatePressureData = (pressureValue) => {
+    const now = new Date();
+    
+    // Add new data point
+    pressureChart.data.datasets[0].data.push({
+        x: now,
+        y: 6.1
+    });
+
+    // Keep only last 30 seconds of data
+    const thirtySecondsAgo = new Date(now - 30000);
+    pressureChart.data.datasets[0].data = pressureChart.data.datasets[0].data.filter(
+        point => point.x > thirtySecondsAgo
+    );
+
+    pressureChart.update('none'); // Update without animation for better performance
+};
+
+  
+
+  // Function to add vertical line
+  const addVerticalLine = (timestamp, label) => {
+    const annotation = {
+      type: 'line',
+      xMin: timestamp,
+      xMax: timestamp,
+      borderColor: 'blue',
+      borderWidth: 1,
+      label: {
+        content: label,
+        enabled: true,
+        position: 'top'
+      }
+    };
+
+    tempGraphs.forEach(chart => {
+      chart.options.plugins.annotation.annotations[label] = annotation;
+      chart.update();
+    });
+
+    pressureChart.options.plugins.annotation.annotations[label] = annotation;
+    pressureChart.update();
+  };
+
+
+
+  // Function to toggle More Data visibility
+  const toggleMoreData = (subProcessId) => {
+    const moreDataDiv = document.getElementById(`dropdownMoreData${subProcessId}`);
+    moreDataDiv.classList.toggle('hidden');
+  };
+
+// Start the WebSocket connection when the document is ready
+document.addEventListener('DOMContentLoaded', (event) => {
+    connectWebSocket();
+    
+});
+
+
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get both display elements
+    const initialWeightDisplay = document.getElementById('weight-display');
+    const finalWeightDisplay = document.getElementById('final-weight-display');
+    
+    // Get other required elements
+    const container = document.querySelector('[data-nominal-weight]');
+    const initialWeightStatus = document.getElementById('weight-status');
+    const finalWeightStatus = document.getElementById('final-weight-status');
+    const initialToleranceInput = document.getElementById('tolerance-input');
+    const finalToleranceInput = document.getElementById('final-tolerance-input');
+    
+    const nominalWeight = parseFloat(container.dataset.nominalWeight);
+    
+    function connectWebSocket() {
+        const wsUrl = `ws://${window.location.host}/ws/Main/sensors/{{ weight_sensor.id }}/`;
+        console.log('Connecting to WebSocket:', wsUrl);
+        
+        const wsConnection = new WebSocket(wsUrl);
+
+        wsConnection.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            
+            if (data.type === 'sensor_data' && data.data.weighing_scale) {
+                const scaleReading = Math.round(data.data.weighing_scale.value * 100) / 100;
+                const weightDisplay = `${scaleReading.toFixed(2)} kg`;
+                
+                // Update both displays with the same value
+                if (initialWeightDisplay) {
+                    initialWeightDisplay.textContent = weightDisplay;
+                }
+                if (finalWeightDisplay) {
+                    finalWeightDisplay.textContent = weightDisplay;
+                }
+
+                // Update initial weight status if elements exist
+                if (initialWeightStatus && initialToleranceInput) {
+                    const initialToleranceValue = parseFloat(initialToleranceInput.value);
+                    if (!isNaN(initialToleranceValue) && !isNaN(nominalWeight) && nominalWeight !== 0) {
+                        const difference = Math.abs(scaleReading - nominalWeight);
+                        const isWithinTolerance = difference <= initialToleranceValue;
+                        initialWeightStatus.innerHTML = isWithinTolerance ? 
+                            '<span style="color: green;">✓</span>' : 
+                            '<span style="color: red;">✘</span>';
+                    }
+                }
+
+                // Update final weight status if elements exist
+                if (finalWeightStatus && finalToleranceInput) {
+                    const finalToleranceValue = parseFloat(finalToleranceInput.value);
+                    if (!isNaN(finalToleranceValue) && !isNaN(nominalWeight) && nominalWeight !== 0) {
+                        const difference = Math.abs(scaleReading - nominalWeight);
+                        const isWithinTolerance = difference <= finalToleranceValue;
+                        finalWeightStatus.innerHTML = isWithinTolerance ? 
+                            '<span style="color: green;">✓</span>' : 
+                            '<span style="color: red;">✘</span>';
+                    }
+                }
+            }
+        };
+
+        wsConnection.onopen = function(e) {
+            console.log('WebSocket connected');
+            if (initialWeightDisplay) initialWeightDisplay.textContent = connectingMessage;
+            if (finalWeightDisplay) finalWeightDisplay.textContent = connectingMessage;
+        };
+
+        wsConnection.onerror = function(e) {
+            console.error('WebSocket error:', e);
+            const errorMessage = 'Scale disconnected';
+            if (initialWeightDisplay) initialWeightDisplay.textContent = errorMessage;
+            if (finalWeightDisplay) finalWeightDisplay.textContent = errorMessage;
+        };
+
+        wsConnection.onclose = function(e) {
+            console.log('WebSocket closed, reconnecting in 1s...');
+            const reconnectingMessage = 'Reconnecting...';
+            if (initialWeightDisplay) initialWeightDisplay.textContent = reconnectingMessage;
+            if (finalWeightDisplay) finalWeightDisplay.textContent = reconnectingMessage;
+            setTimeout(connectWebSocket, 1000);
+        };
+
+        return wsConnection;
+    }
+
+    // Start the connection
+    let wsConnection = connectWebSocket();
+});
+</script>
+
+{% endblock %}

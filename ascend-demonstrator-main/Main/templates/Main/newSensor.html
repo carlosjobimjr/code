@@ -1,0 +1,2327 @@
+{% extends 'Main/base.html' %}
+
+{% block title %}New Machine Health Page{% endblock %}
+
+{% block pageTitle %}SENSOR PAGE{% endblock %}
+
+{% block content %}
+
+    {% load static %}
+
+    <head>
+        <style></style>
+        <link rel="stylesheet" type="text/css" href="{% static 'Main/showMachineHealthStyle.css' %}">
+    </head>
+
+    <body>
+    <div class="backlinkContainer">
+        <a href="/{{ process.id }}" id="backNav"><- Back to Process</a>
+    </div>
+
+    <div class="top-right-buttons flex justify-end space-x-1">
+      <button type="submit" id="b"
+    onclick="location.href = '/exportPDF/'"
+    name="ExportPDF" 
+    value="{{ Pro.id }}"
+    class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+    <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+        Export PDF
+    </span>
+</button>
+        <button type="submit" id="b"
+    onclick="location.href = '/export/'"
+    name="Export"
+    class="relative inline-flex items-center justify-center p-0.5 mb-2 mr-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-cyan-500 to-blue-500 group-hover:from-cyan-500 group-hover:to-blue-500 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-cyan-200 dark:focus:ring-cyan-800">
+    <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-white dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+        Export CSV
+    </span>
+</button>
+
+    </div>
+<head>
+    <style>
+        h1 {
+            font-size: 2em;
+            color: #4CAF50;
+            text-align: center;
+            margin-top: 20px;
+            font-family: Times New Roman, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>MACHINE HEALTH MONITORING PAGE</h1>
+    <div id="Machine Health Graphs">
+
+
+    <div class="graphs">
+    <canvas id="Energy-consumption" width="800" height="400"></canvas>
+    <form method="POST" action="#">
+        {% csrf_token %}
+        {{ time_form }}
+        <button type="submit" name="changeEnergyGraph" value="add" class="btn btn-success">Submit</button>
+    </form>
+</div>
+
+
+
+    </div>
+</body>
+
+
+        <p></p>
+        <p></p>
+
+        <div class="graphs">
+            <canvas id="CO2-emissions" data-url="{% url 'Main:machineHealth' process.id %}"></canvas>
+        </div>
+        <p></p>
+        <p></p>
+
+
+        <div class="graphs">
+            <canvas id="torque-graph" data-url="{% url 'Main:machineHealth' process.id %}"></canvas>
+            <form method="POST" action="#">
+                {% csrf_token %}
+                {{ time_form }}
+                <button type="submit" , name="changeStrainGraph" , value="add" class="btn btn-success">Submit</button>
+            </form>
+        </div>
+
+     <div class="graphs">
+    <canvas id="noise-graph" data-sensor-id="{{ sensor_id }}" style="width: 100%; height: 400px;"></canvas>
+    <form method="POST" action="#">
+        {% csrf_token %}
+        {{ time_form }}
+        <button type="submit" name="changeNoiseGraph" value="add" class="btn btn-success">Submit</button>
+    </form>
+</div>
+<br>
+   <!-- <div class="graphs">
+    <canvas id="accelerometer-graph" data-url="{% url 'Main:machineHealth' process.id %}"></canvas>
+    <form method="POST" action="#">
+        {% csrf_token %}
+        {{ time_form }}
+        <button type="submit" name="changeAccelerationGraph" value="add" class="btn btn-success">Submit</button>
+    </form>
+</div> -->
+
+<!-- Adding some space between sections -->
+<div style="margin-top: 150px;"></div>
+
+<h1>ENVIRONMENT DATA</h1>
+<div id="EnvironmentPage">
+    <div class="graphs">
+        <canvas id="VOC-graph" data-url="{% url 'Main:environGraph' process.id %}"></canvas>
+        <form method="POST" action="#">
+            {% csrf_token %}
+            {{ time_form }}
+            <button type="submit" name="changeVOCGraph" value="add" class="btn btn-success">Submit</button>
+        </form>
+    </div>
+</div>
+
+        <div class="graphs">
+            <canvas id="temp-graph" data-url="{% url 'Main:environGraph' process.id %}"></canvas>
+            <form method="POST" action="#">
+                {% csrf_token %}
+                {{ time_form }}
+                <button type="submit" , name="changeTempGraph" , value="add" class="btn btn-success">Submit</button>
+            </form>
+        </div>
+
+       <div class="graphs">
+    <canvas id="humid-graph" data-sensor-id="{{ sensor_id }}" style="width: 100%; height: 400px;"></canvas>
+    <form method="POST" action="#">
+        {% csrf_token %}
+        {{ time_form }}
+        <button type="submit" name="changeHumidityGraph" value="add" class="btn btn-success">Submit</button>
+    </form>
+</div>
+    <br>
+<div class="graphs">
+    <!-- Graph Section -->
+    <div class="mt-4">
+        <canvas id="dust-graph" data-sensor-id="{{ sensor.id }}" data-url="{% url 'Main:environGraph' process.id %}"></canvas>
+    </div>
+
+    <!-- Submit Section -->
+    <form method="POST" action="#" class="mt-4">
+        {% csrf_token %}
+        <div class="flex justify-end items-center gap-2">
+            {{ time_form }}
+            <button type="submit" name="changeDustGraph" value="add" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded px-3 py-1">Submit</button>
+        </div>
+    </form>
+</div>
+
+
+    </div>
+
+    </body>
+{% endblock %}
+
+{% block script %}
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.0.0/chartjs-plugin-annotation.min.js"
+            integrity="sha512-sLZhA8NE4bIPKMnsROQpJTBKVOQf8ie2GMFVXVfcg90tJ0aNhAWxhPyN0BRjwvZ35dSQF7kSzXtCU11KvWvNwQ=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+    <!--<script src="https://cdn.jsdelivr.net/npm/luxon@1.27.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>-->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-streaming@2.0.0"></script>
+
+
+    <script>
+
+        var receivedData = {};
+        var url = "{% url 'Main:machineHealth' process.id%}";
+        setInterval(masterRefresh, 1500);
+
+        async function masterRefresh() { //refreshes every 1.5 seconds
+            data = await fetch(url, { //fetching data using POST+crsf token for security
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie("csrftoken"),
+                },
+            }) //cleaning/parsing csrf DATA
+                .then(response => response.json())
+                .then(data => { //gathered data = data
+                    console.log(data);
+                    receivedData = data;
+                })
+        }
+
+        function getCookie(cname) { //function to parse through csrf_token data
+            var name = cname + "=";
+            var ca = document.cookie.split(';');
+            for (var i = 0; i < ca.length; i++) {
+                var c = ca[i];
+                while (c.charAt(0) == ' ') c = c.substring(1);
+                if (c.indexOf(name) == 0)
+                    return c.substring(name.length, c.length);
+            }
+            return "";
+        }
+
+document.addEventListener('DOMContentLoaded', () => {
+    const energyGraph = document.getElementById('Energy-consumption');
+    const ctx = energyGraph.getContext('2d');
+    
+    // Set fixed dimensions
+    energyGraph.width = 800;
+    energyGraph.height = 400;
+    
+    // Initialize chart with empty data
+    const chartData = {
+        datasets: [
+            {
+                label: 'KUKA Cabinet (kWh)',
+                data: [],
+                borderColor: 'red',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4
+            },
+            {
+                label: 'Big Cabinet (kWh)',
+                data: [],
+                borderColor: 'blue',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4
+            },
+            {
+                label: 'CNC Router (kWh)',
+                data: [],
+                borderColor: 'green',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4
+            },
+            {
+                label: 'Big Oven (kWh)',
+                data: [],
+                borderColor: 'purple',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4
+            },
+            {
+                label: 'Total Power (kWh)',
+                data: [],
+                borderColor: 'orange',
+                borderWidth: 3,
+                fill: false,
+                tension: 0.4
+            },
+            {
+                label: 'Average Power (kWh)',
+                data: [],
+                borderColor: 'brown',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.4
+            }
+        ]
+    };
+    
+    // Create global chart variable for WebSocket access
+    window.myLineChart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+            animation: false,
+            elements: {
+                point: {
+                    radius: 0,
+                    hitRadius: 10,
+                    hoverRadius: 4
+                },
+                line: {
+                    tension: 0.4
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                        displayFormats: {
+                            second: 'HH:mm:ss'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                },
+                y: {
+                    min: 0,
+                    max: 0.200,
+                    display: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    },
+                    ticks: {
+                        callback: value => value.toFixed(3) + ' kWh',
+                        stepSize: 0.020
+                    },
+                    title: {
+                        display: true,
+                        text: 'Power Consumption (kWh)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: (context) => {
+                            return context.dataset.label + ': ' + 
+                                   context.parsed.y.toFixed(3) + ' kWh';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    console.log('Energy consumption chart initialized');
+});
+
+        document.addEventListener('DOMContentLoaded', () => {
+    const co2Graph = document.getElementById('CO2-emissions');
+    const ctx = co2Graph.getContext('2d');
+    
+    // Set fixed dimensions
+    co2Graph.width = 800;
+    co2Graph.height = 400;
+    
+    // Initialize chart with empty data
+    const chartData = {
+        datasets: [{
+            label: 'CO2 Emissions (kg/hour)',
+            data: [],
+            borderColor: 'green',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.4
+        }]
+    };
+    
+    // Create global chart variable for WebSocket access
+    window.co2LineChart = new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+            responsive: false,
+            maintainAspectRatio: false,
+            animation: false,
+            elements: {
+                point: {
+                    radius: 0,
+                    hitRadius: 10,
+                    hoverRadius: 4
+                },
+                line: {
+                    tension: 0.4
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                        displayFormats: {
+                            second: 'HH:mm:ss'
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                },
+                y: {
+                    min: 0,
+                    max: 0.05, // Adjusted for CO2 emissions range
+                    display: true,
+                    grid: {
+                        display: true,
+                        color: 'rgba(0,0,0,0.1)'
+                    },
+                    ticks: {
+                        callback: value => value.toFixed(3) + ' kg/h',
+                        stepSize: 0.005
+                    },
+                    title: {
+                        display: true,
+                        text: 'CO2 Emissions (kg/hour)'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top'
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: (context) => {
+                            return 'CO2 Emissions: ' + 
+                                   context.parsed.y.toFixed(3) + ' kg/h';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    console.log('CO2 emissions chart initialized');
+});
+
+$(function() {
+    var $torqueGraph = $("#torque-graph");
+    var ctx = $torqueGraph[0].getContext("2d");
+    const now = moment();
+
+    const lineChartData = {
+        datasets: [
+            {
+                label: 'Torque Motor 1',
+                backgroundColor: 'orange',
+                borderColor: 'orange',
+                data: [],
+                fill: false
+            },
+            {
+                label: 'Torque Motor 2',
+                backgroundColor: 'coral',
+                borderColor: 'coral',
+                data: [],
+                fill: false
+            }
+        ]
+    };
+
+    $torqueGraph[0].chart = new Chart(ctx, {
+        type: 'line',
+        data: lineChartData,
+        options: {
+            elements: {
+                point: {
+                    radius: 0
+                }
+            },
+            plugins: {
+                annotation: {
+                    annotations: {
+                        line1: {
+                            type: 'line',
+                            yMin: -110,
+                            yMax: -110,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Min'
+                            }
+                        },
+                        line2: {
+                            type: 'line',
+                            yMin: 110,
+                            yMax: 110,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Max'
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second'
+                    },
+                    min: moment(now).subtract(1, 'minute'),
+                    max: now
+                },
+                y: {
+                    min: -10,
+                    max: 10,
+                    title: {
+                        display: true,
+                        text: 'Torque (Nm)'
+                    }
+                }
+            }
+        }
+    });
+});
+
+
+$(function() {
+    var $noiseGraph = $("#noise-graph");
+    console.log("Found noise graph element:", $noiseGraph.length > 0);
+    
+    var ctx = $noiseGraph[0].getContext("2d");
+    console.log("Got canvas context:", !!ctx);
+    
+    const now = moment();
+    const minDate = moment(now).subtract(1, 'minute').format();
+    const maxDate = now.format();
+    
+    const lineChartData = {
+        datasets: [{
+            label: 'Noise Level (dB)',
+            backgroundColor: 'blue',
+            borderColor: 'blue',
+            data: [],
+            fill: false
+        }]
+    };
+    
+    $noiseGraph[0].chart = new Chart(ctx, {
+        type: 'line',
+        data: lineChartData,
+        options: {
+            elements: {
+                point: {
+                    radius: 0
+                }
+            },
+            plugins: {
+                annotation: {
+                    annotations: {
+                        line1: {
+                            type: 'line',
+                            yMin: 100,
+                            yMax: 100,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Min'
+                            }
+                        },
+                        line2: {
+                            type: 'line',
+                            yMin: 1000,
+                            yMax: 1000,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Max'
+                            }
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second'
+                    },
+                    min: minDate,
+                    max: maxDate
+                },
+                y: {
+                    min: 100,
+                    max: 1000
+                }
+            }
+        }
+    });
+});
+
+
+
+$(function () {
+    var $accelerometerGraph = $("#accelerometer-graph");
+    var ctx = $accelerometerGraph[0].getContext("2d");
+
+    // Global variable to store latest vibration data
+    let globalVibrationData = null;
+
+    // Updated sensor configurations with explicit sensor names
+    const sensorConfigurations = {
+        'SINDT485-1': {
+            title: 'Vibration Sensor 1',
+            key: 'Vibration Sensor 1',
+            acceleration: [
+                {
+                    label: 'Acceleration X', 
+                    key: 'Acceleration X in m/sec2'
+                },
+                {
+                    label: 'Acceleration Y', 
+                    key: 'Acceleration Y in m/sec2'
+                },
+                {
+                    label: 'Acceleration Z', 
+                    key: 'Acceleration Z in m/sec2'
+                }
+            ],
+            angles: [
+                {
+                    label: 'Roll Angle X', 
+                    key: 'Roll Angle X in deg'
+                },
+                {
+                    label: 'Pitch Angle Y', 
+                    key: 'Pitch Angle Y in deg'
+                },
+                {
+                    label: 'Yaw Angle Z', 
+                    key: 'Yaw Angle Z in deg'
+                }
+            ]
+        },
+        'SINDT485-2': {
+            title: 'Vibration Sensor 2',
+            key: 'Vibration Sensor 2',
+            acceleration: [
+                {
+                    label: 'Acceleration X', 
+                    key: 'Acceleration X in m/sec2'
+                },
+                {
+                    label: 'Acceleration Y', 
+                    key: 'Acceleration Y in m/sec2'
+                },
+                {
+                    label: 'Acceleration Z', 
+                    key: 'Acceleration Z in m/sec2'
+                }
+            ],
+            angles: [
+                {
+                    label: 'Roll Angle X', 
+                    key: 'Roll Angle X in deg'
+                },
+                {
+                    label: 'Pitch Angle Y', 
+                    key: 'Pitch Angle Y in deg'
+                },
+                {
+                    label: 'Yaw Angle Z', 
+                    key: 'Yaw Angle Z in deg'
+                }
+            ]
+        }
+    };
+
+    // Add selector HTML before the graph
+   const selectorHtml = `
+    <div style="position: relative; margin-bottom: 10px;">
+        <div style="position: absolute; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div style="display: flex; gap: 20px; align-items: start;">
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium">Min:</label>
+                        <input type="number" id="accelerometer-graph-min" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="-10">
+                    </div>
+                    <button id="set-min-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Min Value</button>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium">Max:</label>
+                        <input type="number" id="accelerometer-graph-max" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="30">
+                    </div>
+                    <button id="set-max-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Max Value</button>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <!-- Added margin-right for spacing between dropdown and button -->
+                <select id="accelerometer-sensor-select" class="form-select text-sm h-8 rounded-md">
+                    <option value="SINDT485-1">SINDT485-1</option>
+                    <option value="SINDT485-2">SINDT485-2</option>
+                </select>
+                
+               <button id="toggle-data-view" 
+    class="bg-green-500 hover:bg-green-600 text-white text-sm h-8 px-3 rounded border border-green-600 shadow-md" 
+    style="margin-left: 10px; min-width: 200px; display: inline-block; white-space: nowrap; text-align: center;">
+    Display Roll-Pitch-Yaw Angles
+</button>
+              
+            </div>
+        </div>
+    </div>
+`;
+
+    $accelerometerGraph.before(selectorHtml);
+
+    const now = moment();
+    const minDate = moment(now).subtract(1, 'minute').format();
+    const maxDate = now.format();
+
+    // Initial default sensor configuration 
+    const defaultSensor = 'SINDT485-1';
+    const initialConfig = sensorConfigurations[defaultSensor];
+
+    // Initial datasets based on selected sensor
+    const lineChartData = {
+        datasets: initialConfig.acceleration.map((channel, index) => ({
+            label: channel.label,
+            backgroundColor: ['purple', 'green', 'red'][index],
+            borderColor: ['purple', 'green', 'red'][index],
+            data: [],
+            fill: false,
+            key: channel.key
+        }))
+    };
+
+    // Create the chart
+    $accelerometerGraph[0].chart = new Chart(ctx, {
+        type: 'line',
+        data: lineChartData,
+        options: {
+            responsive: true,
+            animation: false,
+            elements: {
+                point: {
+                    radius: 0,
+                },
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const dataset = context.dataset;
+                            const value = context.parsed.y;
+                            return `${dataset.label}: ${value.toFixed(2)} ${dataset.label.includes('Angle') ? '°' : 'm/sec²'}`;
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: initialConfig.title,
+                    font: {
+                        size: 16,
+                    },
+                },
+                annotation: {
+                    annotations: {
+                        line1: {
+                            type: 'line',
+                            yMin: -10,
+                            yMax: -10,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Min',
+                            },
+                        },
+                        line2: {
+                            type: 'line',
+                            yMin: 30,
+                            yMax: 30,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Max',
+                            },
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                    },
+                    min: minDate,
+                    max: maxDate,
+                    title: {
+                        display: true,
+                        text: 'Time',
+                    },
+                },
+                y: {
+                    min: -10,
+                    max: 30,
+                    title: {
+                        display: true,
+                        text: 'Acceleration (m/sec²)',
+                    },
+                },
+            },
+        },
+    });
+
+    // Track current view (acceleration or angles)
+    let isAccelerationView = true;
+
+    // Function to update graph with specific sensor data
+    function updateAccelerationGraph(sensorKey) {
+        if (!globalVibrationData) return;
+
+        const sensorData = globalVibrationData[sensorKey];
+        if (!sensorData) return;
+
+        const chart = $accelerometerGraph[0].chart;
+        const timestamp = moment(sensorData.timestamp).toDate();
+
+        // Get current configuration
+        const selectedSensor = $('#accelerometer-sensor-select').val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+
+        // Update data values based on current view
+        const dataSource = isAccelerationView ? sensorConfig.acceleration : sensorConfig.angles;
+
+        // Update graph values
+        chart.data.datasets.forEach((dataset, index) => {
+            const channelConfig = dataSource[index];
+            dataset.data.push({
+                x: timestamp,
+                y: sensorData.values[channelConfig.key]
+            });
+            dataset.label = channelConfig.label;
+            dataset.key = channelConfig.key;
+        });
+        
+        // Limit datasets to 60 points
+        chart.data.datasets.forEach(dataset => {
+            if (dataset.data.length > 60) {
+                dataset.data.shift();
+            }
+        });
+        
+        // Update time window
+        const now = moment();
+        chart.options.scales.x.min = moment(now).subtract(1, 'minute');
+        chart.options.scales.x.max = now;
+
+        // Update y-axis label and scale based on view
+        if (isAccelerationView) {
+            chart.options.scales.y.min = -10;
+            chart.options.scales.y.max = 30;
+            chart.options.scales.y.title.text = 'Acceleration (m/sec²)';
+            
+            // Update annotation lines
+            chart.options.plugins.annotation.annotations.line1.yMin = -10;
+            chart.options.plugins.annotation.annotations.line1.yMax = -10;
+            chart.options.plugins.annotation.annotations.line2.yMin = 30;
+            chart.options.plugins.annotation.annotations.line2.yMax = 30;
+        } else {
+            chart.options.scales.y.min = 0;
+            chart.options.scales.y.max = 500;
+            chart.options.scales.y.title.text = 'Angle (degrees)';
+            
+            // Update annotation lines
+            chart.options.plugins.annotation.annotations.line1.yMin = 0;
+            chart.options.plugins.annotation.annotations.line1.yMax = 0;
+            chart.options.plugins.annotation.annotations.line2.yMin = 500;
+            chart.options.plugins.annotation.annotations.line2.yMax = 500;
+        }
+        
+        chart.update('none');
+    }
+
+    // Handle min/max value changes
+    $('#accelerometer-graph-min, #accelerometer-graph-max').on('change', function () {
+        const minVal = Number($('#accelerometer-graph-min').val());
+        const maxVal = Number($('#accelerometer-graph-max').val());
+
+        if (minVal < maxVal) {
+            // Update y-axis scale
+            $accelerometerGraph[0].chart.options.scales.y.min = minVal;
+            $accelerometerGraph[0].chart.options.scales.y.max = maxVal;
+
+            // Update annotation lines
+            $accelerometerGraph[0].chart.options.plugins.annotation.annotations.line1.yMin = minVal;
+            $accelerometerGraph[0].chart.options.plugins.annotation.annotations.line1.yMax = minVal;
+            $accelerometerGraph[0].chart.options.plugins.annotation.annotations.line2.yMin = maxVal;
+            $accelerometerGraph[0].chart.options.plugins.annotation.annotations.line2.yMax = maxVal;
+
+            $accelerometerGraph[0].chart.update();
+        }
+    });
+
+    // Handle sensor selection change
+    $('#accelerometer-sensor-select').on('change', function () {
+        const selectedSensor = $(this).val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+
+        // Update title
+        $accelerometerGraph[0].chart.options.plugins.title.text = sensorConfig.title;
+
+        // Clear existing datasets
+        $accelerometerGraph[0].chart.data.datasets.forEach((dataset, index) => {
+            dataset.data = [];
+            // Update based on current view
+            const dataSource = isAccelerationView ? sensorConfig.acceleration : sensorConfig.angles;
+            const channelConfig = dataSource[index];
+            dataset.label = channelConfig.label;
+            dataset.key = channelConfig.key;
+        });
+
+        $accelerometerGraph[0].chart.update();
+    });
+
+    // Toggle between acceleration and RPY views
+    $('#toggle-data-view').on('click', function() {
+        // Toggle view
+        isAccelerationView = !isAccelerationView;
+
+        // Update button text
+        $(this).text(isAccelerationView ? 'Display Roll-Pitch-Yaw Angles' : 'Display Acceleration');
+
+        // Get current selected sensor
+        const selectedSensor = $('#accelerometer-sensor-select').val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+
+        // Clear existing datasets
+        $accelerometerGraph[0].chart.data.datasets.forEach((dataset, index) => {
+            dataset.data = [];
+            // Update based on new view
+            const dataSource = isAccelerationView ? sensorConfig.acceleration : sensorConfig.angles;
+            const channelConfig = dataSource[index];
+            dataset.label = channelConfig.label;
+            dataset.key = channelConfig.key;
+        });
+
+        // Update y-axis scale and label
+        if (isAccelerationView) {
+            $accelerometerGraph[0].chart.options.scales.y.min = -10;
+            $accelerometerGraph[0].chart.options.scales.y.max = 30;
+            $accelerometerGraph[0].chart.options.scales.y.title.text = 'Acceleration (m/sec²)';
+            
+            // Update inputs to default acceleration values
+            $('#accelerometer-graph-min').val(-10);
+            $('#accelerometer-graph-max').val(30);
+        } else {
+            $accelerometerGraph[0].chart.options.scales.y.min = 0;
+            $accelerometerGraph[0].chart.options.scales.y.max = 500;
+            $accelerometerGraph[0].chart.options.scales.y.title.text = 'Angle (degrees)';
+            
+            // Update inputs to default angle values
+            $('#accelerometer-graph-min').val(0);
+            $('#accelerometer-graph-max').val(500);
+        }
+
+        $accelerometerGraph[0].chart.update();
+    });
+
+    // Expose method to update graph with vibration data
+    window.updateAccelerationGraph = function(vibrationData) {
+        globalVibrationData = vibrationData;
+        
+        // Get current selected sensor
+        const selectedSensor = $('#accelerometer-sensor-select').val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+        
+        // Update graph with current sensor's data
+        updateAccelerationGraph(sensorConfig.key);
+    };
+});
+
+
+</script>
+      
+
+
+
+<script>
+
+ $(function () {
+    var $vocGraph = $("#VOC-graph");
+    var ctx = $vocGraph[0].getContext("2d");
+
+    // Global variable to store latest VOC data
+    let globalVOCData = null;
+
+    // Predefined sensor configurations
+    const sensorConfigurations = {
+        'SINDT485-1': {
+            title: 'VOC Sensor 1',
+            key: 'VOC Sensor 1'
+        },
+        'SINDT485-2': {
+            title: 'VOC Sensor 2', 
+            key: 'VOC Sensor 2'
+        }
+    };
+
+    // Add selector HTML before the graph
+    const selectorHtml = `
+        <div style="position: relative; margin-bottom: 10px;">
+            <div style="position: absolute; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div style="display: flex; gap: 20px; align-items: start;">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium">Min:</label>
+                            <input type="number" id="voc-graph-min" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="0">
+                        </div>
+                        <button id="set-min-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Min Value</button>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium">Max:</label>
+                            <input type="number" id="voc-graph-max" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="100">
+                        </div>
+                        <button id="set-max-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Max Value</button>
+                    </div>
+                </div>
+                <select id="voc-sensor-select" class="form-select text-sm h-8 rounded-md">
+                    <option value="SINDT485-1">SINDT485-1</option>
+                    <option value="SINDT485-2">SINDT485-2</option>
+                </select>
+            </div>
+        </div>
+    `;
+    $vocGraph.before(selectorHtml);
+
+    const now = moment();
+    const minDate = moment(now).subtract(1, 'minute').format();
+    const maxDate = now.format();
+
+    // Initial default sensor configuration 
+    const defaultSensor = 'SINDT485-1';
+    const initialConfig = sensorConfigurations[defaultSensor];
+
+    // Initial datasets based on selected sensor
+    const lineChartData = {
+        datasets: [{
+            label: 'VOC Index',
+            backgroundColor: 'green',
+            borderColor: 'green',
+            data: [],
+            fill: false,
+            key: 'VOC Value in Air Quality Index'
+        }]
+    };
+
+    // Create the chart
+    $vocGraph[0].chart = new Chart(ctx, {
+        type: 'line',
+        data: lineChartData,
+        options: {
+            responsive: true,
+            animation: false,
+            elements: {
+                point: {
+                    radius: 0,
+                },
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `VOC Index: ${context.parsed.y}`;
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: initialConfig.title,
+                    font: {
+                        size: 16,
+                    },
+                },
+                annotation: {
+                    annotations: {
+                        line1: {
+                            type: 'line',
+                            yMin: 0,
+                            yMax: 0,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Min',
+                            },
+                        },
+                        line2: {
+                            type: 'line',
+                            yMin: 100,
+                            yMax: 100,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Max',
+                            },
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                    },
+                    min: minDate,
+                    max: maxDate,
+                    title: {
+                        display: true,
+                        text: 'Time',
+                    },
+                },
+                y: {
+                    min: 0,
+                    max: 500,
+                    title: {
+                        display: true,
+                        text: 'VOC Index',
+                    },
+                },
+            },
+        },
+    });
+
+    // Handle min/max value changes
+    $('#voc-graph-min, #voc-graph-max').on('change', function () {
+        const minVal = Number($('#voc-graph-min').val());
+        const maxVal = Number($('#voc-graph-max').val());
+
+        if (minVal < maxVal) {
+            // Update y-axis scale
+            $vocGraph[0].chart.options.scales.y.min = minVal;
+            $vocGraph[0].chart.options.scales.y.max = maxVal;
+
+            // Update annotation lines
+            $vocGraph[0].chart.options.plugins.annotation.annotations.line1.yMin = minVal;
+            $vocGraph[0].chart.options.plugins.annotation.annotations.line1.yMax = minVal;
+            $vocGraph[0].chart.options.plugins.annotation.annotations.line2.yMin = maxVal;
+            $vocGraph[0].chart.options.plugins.annotation.annotations.line2.yMax = maxVal;
+
+            $vocGraph[0].chart.update();
+        }
+    });
+
+    // Handle sensor selection change
+    $('#voc-sensor-select').on('change', function () {
+        const selectedSensor = $(this).val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+
+        // Update title
+        $vocGraph[0].chart.options.plugins.title.text = sensorConfig.title;
+
+        // Clear existing datasets
+        $vocGraph[0].chart.data.datasets[0].data = [];
+
+        $vocGraph[0].chart.update();
+    });
+
+    // Expose method to update graph with VOC data
+    window.updateVOCGraph = function(vocData) {
+        const selectedSensor = $('#voc-sensor-select').val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+        const sensorData = vocData[sensorConfig.key];
+
+        if (!sensorData) return;
+
+        const chart = $vocGraph[0].chart;
+        const timestamp = moment(sensorData.timestamp).toDate();
+
+        // Update VOC Index value
+        chart.data.datasets[0].data.push({
+            x: timestamp,
+            y: sensorData.values['VOC Value in Air Quality Index']
+        });
+        
+        // Limit datasets to 60 points
+        if (chart.data.datasets[0].data.length > 60) {
+            chart.data.datasets[0].data.shift();
+        }
+        
+        // Update time window
+        const now = moment();
+        chart.options.scales.x.min = moment(now).subtract(1, 'minute');
+        chart.options.scales.x.max = now;
+        
+        chart.update('none');
+    };
+});
+    
+ $(function () {
+    var $tempGraph = $("#temp-graph");
+    var ctx = $tempGraph[0].getContext("2d");
+
+    // Global variable to store latest temperature data
+    let globalTempData = null;
+
+    // Predefined sensor configurations
+    const sensorConfigurations = {
+        'SINDT485-1': {
+            title: 'Temperature Sensor 1',
+            key: 'VOC Sensor 1'
+        },
+        'SINDT485-2': {
+            title: 'Temperature Sensor 2', 
+            key: 'VOC Sensor 2'
+        }
+    };
+
+    // Add selector HTML before the graph
+    const selectorHtml = `
+        <div style="position: relative; margin-bottom: 10px;">
+            <div style="position: absolute; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div style="display: flex; gap: 20px; align-items: start;">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium">Min:</label>
+                            <input type="number" id="temp-graph-min" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="-15">
+                        </div>
+                        <button id="set-min-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Min Value</button>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium">Max:</label>
+                            <input type="number" id="temp-graph-max" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="60">
+                        </div>
+                        <button id="set-max-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Max Value</button>
+                    </div>
+                </div>
+                <select id="temp-sensor-select" class="form-select text-sm h-8 rounded-md">
+                    <option value="SINDT485-1">SINDT485-1</option>
+                    <option value="SINDT485-2">SINDT485-2</option>
+                </select>
+            </div>
+        </div>
+    `;
+    $tempGraph.before(selectorHtml);
+
+    const now = moment();
+    const minDate = moment(now).subtract(1, 'minute').format();
+    const maxDate = now.format();
+
+    // Initial default sensor configuration 
+    const defaultSensor = 'SINDT485-1';
+    const initialConfig = sensorConfigurations[defaultSensor];
+
+    // Initial datasets based on selected sensor
+    const lineChartData = {
+        datasets: [{
+            label: 'Temperature',
+            backgroundColor: 'red',
+            borderColor: 'red',
+            data: [],
+            fill: false,
+            key: 'Temperature Value in °C'
+        }]
+    };
+
+    // Create the chart
+    $tempGraph[0].chart = new Chart(ctx, {
+        type: 'line',
+        data: lineChartData,
+        options: {
+            responsive: true,
+            animation: false,
+            elements: {
+                point: {
+                    radius: 0,
+                },
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Temperature: ${context.parsed.y.toFixed(1)}°C`;
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: initialConfig.title,
+                    font: {
+                        size: 16,
+                    },
+                },
+                annotation: {
+                    annotations: {
+                        line1: {
+                            type: 'line',
+                            yMin: -15,
+                            yMax: -15,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Min',
+                            },
+                        },
+                        line2: {
+                            type: 'line',
+                            yMin: 60,
+                            yMax: 60,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Max',
+                            },
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                    },
+                    min: minDate,
+                    max: maxDate,
+                    title: {
+                        display: true,
+                        text: 'Time',
+                    },
+                },
+                y: {
+                    min: -15,
+                    max: 60,
+                    title: {
+                        display: true,
+                        text: 'Temperature (°C)',
+                    },
+                },
+            },
+        },
+    });
+
+    // Handle min/max value changes
+    $('#temp-graph-min, #temp-graph-max').on('change', function () {
+        const minVal = Number($('#temp-graph-min').val());
+        const maxVal = Number($('#temp-graph-max').val());
+
+        if (minVal < maxVal) {
+            // Update y-axis scale
+            $tempGraph[0].chart.options.scales.y.min = minVal;
+            $tempGraph[0].chart.options.scales.y.max = maxVal;
+
+            // Update annotation lines
+            $tempGraph[0].chart.options.plugins.annotation.annotations.line1.yMin = minVal;
+            $tempGraph[0].chart.options.plugins.annotation.annotations.line1.yMax = minVal;
+            $tempGraph[0].chart.options.plugins.annotation.annotations.line2.yMin = maxVal;
+            $tempGraph[0].chart.options.plugins.annotation.annotations.line2.yMax = maxVal;
+
+            $tempGraph[0].chart.update();
+        }
+    });
+
+    // Handle sensor selection change
+    $('#temp-sensor-select').on('change', function () {
+        const selectedSensor = $(this).val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+
+        // Update title
+        $tempGraph[0].chart.options.plugins.title.text = sensorConfig.title;
+
+        // Clear existing datasets
+        $tempGraph[0].chart.data.datasets[0].data = [];
+
+        $tempGraph[0].chart.update();
+    });
+
+    // Expose method to update graph with temperature data
+    window.updateTempGraph = function(vocData) {
+        const selectedSensor = $('#temp-sensor-select').val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+        const sensorData = vocData[sensorConfig.key];
+
+        if (!sensorData) return;
+
+        const chart = $tempGraph[0].chart;
+        const timestamp = moment(sensorData.timestamp).toDate();
+
+        // Update temperature value
+        chart.data.datasets[0].data.push({
+            x: timestamp,
+            y: sensorData.values['Temperature Value in °C']
+        });
+        
+        // Limit datasets to 60 points
+        if (chart.data.datasets[0].data.length > 60) {
+            chart.data.datasets[0].data.shift();
+        }
+        
+        // Update time window
+        const now = moment();
+        chart.options.scales.x.min = moment(now).subtract(1, 'minute');
+        chart.options.scales.x.max = now;
+        
+        chart.update('none');
+    };
+});
+
+$(function () {
+    var $humidGraph = $("#humid-graph");
+    var ctx = $humidGraph[0].getContext("2d");
+
+    // Global variable to store latest humidity data
+    let globalHumidityData = null;
+
+    // Predefined sensor configurations
+    const sensorConfigurations = {
+        'SINDT485-1': {
+            title: 'Humidity Sensor 1',
+            key: 'VOC Sensor 1'
+        },
+        'SINDT485-2': {
+            title: 'Humidity Sensor 2', 
+            key: 'VOC Sensor 2'
+        }
+    };
+
+    // Add selector HTML before the graph
+    const selectorHtml = `
+        <div style="position: relative; margin-bottom: 10px;">
+            <div style="position: absolute; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div style="display: flex; gap: 20px; align-items: start;">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium">Min:</label>
+                            <input type="number" id="humidity-graph-min" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="0">
+                        </div>
+                        <button id="set-min-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Min Value</button>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium">Max:</label>
+                            <input type="number" id="humidity-graph-max" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="100">
+                        </div>
+                        <button id="set-max-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Max Value</button>
+                    </div>
+                </div>
+                <select id="humidity-sensor-select" class="form-select text-sm h-8 rounded-md">
+                    <option value="SINDT485-1">SINDT485-1</option>
+                    <option value="SINDT485-2">SINDT485-2</option>
+                </select>
+            </div>
+        </div>
+    `;
+    $humidGraph.before(selectorHtml);
+
+    const now = moment();
+    const minDate = moment(now).subtract(1, 'minute').format();
+    const maxDate = now.format();
+
+    // Initial default sensor configuration 
+    const defaultSensor = 'SINDT485-1';
+    const initialConfig = sensorConfigurations[defaultSensor];
+
+    // Initial datasets based on selected sensor
+    const lineChartData = {
+        datasets: [{
+            label: 'Humidity Level',
+            backgroundColor: 'green',
+            borderColor: 'green',
+            data: [],
+            fill: false,
+            key: 'Humidity Value in rH'
+        }]
+    };
+
+    // Create the chart
+    $humidGraph[0].chart = new Chart(ctx, {
+        type: 'line',
+        data: lineChartData,
+        options: {
+            responsive: true,
+            animation: false,
+            elements: {
+                point: {
+                    radius: 0,
+                },
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `Humidity: ${context.parsed.y.toFixed(1)} rH`;
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: initialConfig.title,
+                    font: {
+                        size: 16,
+                    },
+                },
+                annotation: {
+                    annotations: {
+                        line1: {
+                            type: 'line',
+                            yMin: 0,
+                            yMax: 0,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Min',
+                            },
+                        },
+                        line2: {
+                            type: 'line',
+                            yMin: 100,
+                            yMax: 100,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Max',
+                            },
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                    },
+                    min: minDate,
+                    max: maxDate,
+                    title: {
+                        display: true,
+                        text: 'Time',
+                    },
+                },
+                y: {
+                    min: 0,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Humidity (rH)',
+                    },
+                },
+            },
+        },
+    });
+
+    // Handle min/max value changes
+    $('#humidity-graph-min, #humidity-graph-max').on('change', function () {
+        const minVal = Number($('#humidity-graph-min').val());
+        const maxVal = Number($('#humidity-graph-max').val());
+
+        if (minVal < maxVal) {
+            // Update y-axis scale
+            $humidGraph[0].chart.options.scales.y.min = minVal;
+            $humidGraph[0].chart.options.scales.y.max = maxVal;
+
+            // Update annotation lines
+            $humidGraph[0].chart.options.plugins.annotation.annotations.line1.yMin = minVal;
+            $humidGraph[0].chart.options.plugins.annotation.annotations.line1.yMax = minVal;
+            $humidGraph[0].chart.options.plugins.annotation.annotations.line2.yMin = maxVal;
+            $humidGraph[0].chart.options.plugins.annotation.annotations.line2.yMax = maxVal;
+
+            $humidGraph[0].chart.update();
+        }
+    });
+
+    // Handle sensor selection change
+    $('#humidity-sensor-select').on('change', function () {
+        const selectedSensor = $(this).val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+
+        // Update title
+        $humidGraph[0].chart.options.plugins.title.text = sensorConfig.title;
+
+        // Clear existing datasets
+        $humidGraph[0].chart.data.datasets[0].data = [];
+
+        $humidGraph[0].chart.update();
+    });
+
+    // Expose method to update graph with humidity data
+    window.updateHumidityGraph = function(vocData) {
+        const selectedSensor = $('#humidity-sensor-select').val();
+        const sensorConfig = sensorConfigurations[selectedSensor];
+        const sensorData = vocData[sensorConfig.key];
+
+        if (!sensorData) return;
+
+        const chart = $humidGraph[0].chart;
+        const timestamp = moment(sensorData.timestamp).toDate();
+
+        // Update humidity value
+        chart.data.datasets[0].data.push({
+            x: timestamp,
+            y: sensorData.values['Humidity Value in rH']
+        });
+        
+        // Limit datasets to 60 points
+        if (chart.data.datasets[0].data.length > 60) {
+            chart.data.datasets[0].data.shift();
+        }
+        
+        // Update time window
+        const now = moment();
+        chart.options.scales.x.min = moment(now).subtract(1, 'minute');
+        chart.options.scales.x.max = now;
+        
+        chart.update('none');
+    };
+});
+
+$(function () {
+    var $dustGraph = $("#dust-graph");
+    var ctx = $dustGraph[0].getContext("2d");
+
+    const selectorHtml = `
+        <div style="position: relative; margin-bottom: 10px;">
+            <div style="position: absolute; display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div style="display: flex; gap: 20px; align-items: start;">
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium">Min:</label>
+                            <input type="number" id="dust-graph-min" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="0">
+                        </div>
+                        <button id="set-min-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Min Value</button>
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm font-medium">Max:</label>
+                            <input type="number" id="dust-graph-max" style="width: 50px;" class="h-6 text-sm border rounded px-1" value="100">
+                        </div>
+                        <button id="set-max-btn" class="text-xs text-white bg-green-500 hover:bg-green-600 rounded h-6 px-2">Set Max Value</button>
+                    </div>
+                </div>
+                <select id="dust-sensor-select" class="form-select text-sm h-8 rounded-md">
+                    <option value="LINOVISION">LINOVISION (Air Quality Sensor)</option>
+                    <option value="NEXTPM1">Next PM 1 (Particulate Matter Sensor)</option>
+                    <option value="NEXTPM2">Next PM 2 (Particulate Matter Sensor)</option>
+                </select>
+            </div>
+        </div>
+    `;
+
+
+    $dustGraph.before(selectorHtml);
+    const now = moment();
+    const minDate = moment(now).subtract(1, 'minute').format();
+    const maxDate = now.format();
+
+    // Initial datasets for LINOVISION (default view)
+    const lineChartData = {
+        datasets: [
+            {
+                label: 'PM2.5',
+                backgroundColor: 'blue',
+                borderColor: 'blue',
+                data: [],
+                fill: false,
+            },
+            {
+                label: 'PM10',
+                backgroundColor: 'red',
+                borderColor: 'red',
+                data: [],
+                fill: false,
+            },
+        ],
+    };
+
+    $dustGraph[0].chart = new Chart(ctx, {
+        type: 'line',
+        data: lineChartData,
+        options: {
+            responsive: true,
+            animation: false,
+            elements: {
+                point: {
+                    radius: 0,
+                },
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Air Quality Measurements - IOTS300AQ',
+                    font: {
+                        size: 16,
+                    },
+                },
+                annotation: {
+                    annotations: {
+                        line1: {
+                            type: 'line',
+                            yMin: 0,
+                            yMax: 0,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Min',
+                            },
+                        },
+                        line2: {
+                            type: 'line',
+                            yMin: 100,
+                            yMax: 100,
+                            borderColor: 'rgb(0, 0, 0)',
+                            borderWidth: 2,
+                            label: {
+                                display: true,
+                                position: 'center',
+                                content: 'Max',
+                            },
+                        },
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'second',
+                    },
+                    min: minDate,
+                    max: maxDate,
+                    title: {
+                        display: true,
+                        text: 'Time',
+                    },
+                },
+                y: {
+                    min: 0,
+                    max: 100,
+                    title: {
+                        display: true,
+                        text: 'Concentration (μg/m³)',
+                    },
+                },
+            },
+        },
+    });
+
+    // Handle min/max value changes
+    $('#dust-graph-min, #dust-graph-max').on('change', function () {
+        const minVal = Number($('#dust-graph-min').val());
+        const maxVal = Number($('#dust-graph-max').val());
+
+        if (minVal < maxVal) {
+            // Update y-axis scale
+            $dustGraph[0].chart.options.scales.y.min = minVal;
+            $dustGraph[0].chart.options.scales.y.max = maxVal;
+
+            // Update annotation lines
+            $dustGraph[0].chart.options.plugins.annotation.annotations.line1.yMin = minVal;
+            $dustGraph[0].chart.options.plugins.annotation.annotations.line1.yMax = minVal;
+            $dustGraph[0].chart.options.plugins.annotation.annotations.line2.yMin = maxVal;
+            $dustGraph[0].chart.options.plugins.annotation.annotations.line2.yMax = maxVal;
+
+            $dustGraph[0].chart.update();
+        }
+    });
+
+    // Handle sensor selection change
+    $('#dust-sensor-select').on('change', function () {
+        const selectedSensor = $(this).val();
+
+        if (selectedSensor === 'LINOVISION') {
+            // Update title
+            $dustGraph[0].chart.options.plugins.title.text =
+                'Air Quality Measurements - IOTS300AQ';
+            // Update datasets for LINOVISION
+            $dustGraph[0].chart.data.datasets = [
+                {
+                    label: 'PM2.5',
+                    backgroundColor: 'blue',
+                    borderColor: 'blue',
+                    data: [],
+                    fill: false,
+                },
+                {
+                    label: 'PM10',
+                    backgroundColor: 'red',
+                    borderColor: 'red',
+                    data: [],
+                    fill: false,
+                },
+            ];
+        } else {
+            // Update title
+            $dustGraph[0].chart.options.plugins.title.text = `Particulate Matter (Dust) Concentration - ${selectedSensor}`;
+            // Update datasets for NextPM sensors
+            $dustGraph[0].chart.data.datasets = [
+                {
+                    label: 'PM1',
+                    backgroundColor: 'green',
+                    borderColor: 'green',
+                    data: [],
+                    fill: false,
+                },
+                {
+                    label: 'PM2.5',
+                    backgroundColor: 'blue',
+                    borderColor: 'blue',
+                    data: [],
+                    fill: false,
+                },
+                {
+                    label: 'PM10',
+                    backgroundColor: 'red',
+                    borderColor: 'red',
+                    data: [],
+                    fill: false,
+                },
+            ];
+        }
+        $dustGraph[0].chart.update();
+    });
+});
+
+    </script>
+    
+
+
+
+<script>
+document.getElementById('connect-button').addEventListener('click', function() {
+    fetch('/connect-plc/')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('connection-status').textContent = data.status;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('connection-status').textContent = 'Connection failed';
+        });
+});
+
+</script>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ROS Data Display</title>
+
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/eventemitter2@6.4.9/lib/eventemitter2.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+    
+</head>
+<body>
+
+
+
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            class SensorWebSocketManager {
+                constructor() {
+                    this.sensorId = document.getElementById('noise-graph').dataset.sensorId;
+                    this.socket = null;
+                    this.initializeWebSocket();
+                }
+        
+                initializeWebSocket() {
+                    this.socket = new WebSocket(
+                        'ws://' + window.location.host + '/ws/Main/sensors/' + this.sensorId + '/'
+                    );
+                    this.socket.onopen = this.handleOpenConnection.bind(this);
+                    this.socket.onmessage = this.handleIncomingMessage.bind(this);
+                    this.socket.onclose = this.handleConnectionClose.bind(this);
+                }
+        
+                handleOpenConnection(event) {
+                    console.log("WebSocket connection established for sensor ID:", this.sensorId);
+                }
+        
+                handleIncomingMessage(event) {
+                    try {
+                        const data = JSON.parse(event.data);
+                        console.log("Received WebSocket data:", data);
+        
+                        if (data.type === 'motor_data' && data.data && data.data.motor_loads) {
+                            this.updateTorqueGraph(data.data.motor_loads);
+                        }
+                        
+                        if (data.type === 'sensor_data' && data.data) {
+                            this.updateGraphs(data.data);
+                        }
+                    } catch (error) {
+                        console.error("Error processing WebSocket message:", error);
+                    }
+                }
+        
+                updateGraphs(sensorData) {
+                    if (sensorData.noise) {
+                        this.updateNoiseGraph(sensorData.noise);
+                    }
+                    if (sensorData.voc) {
+                        window.updateHumidityGraph(sensorData.voc);
+                    }
+                    if (sensorData.air_quality) {
+                        this.updateDustGraph(sensorData.air_quality);
+                    }
+                    if (sensorData.vibration) {
+                        window.updateAccelerationGraph(sensorData.vibration);
+                        this.updateVibrationGraph(sensorData.vibration);
+                    }
+                    if (sensorData.voc) {
+                        this.updateVOCGraph(sensorData.voc);
+                        window.updateTempGraph(sensorData.voc);
+                    }
+                    if (sensorData.weighing_scale) {
+                        this.updateWeighingScaleGraph(sensorData.weighing_scale);
+                    }
+                }
+        
+                updateNoiseGraph(noiseData) {
+                    const noiseGraph = document.getElementById('noise-graph');
+                    if (noiseGraph && noiseGraph.chart) {
+                        const processedData = {
+                            timestamp: noiseData.timestamp,
+                            value: noiseData.value
+                        };
+                        
+                        noiseGraph.chart.data.datasets[0].data.push({
+                            x: moment(processedData.timestamp).toDate(),
+                            y: processedData.value
+                        });
+                        
+                        if (noiseGraph.chart.data.datasets[0].data.length > 60) {
+                            noiseGraph.chart.data.datasets[0].data.shift();
+                        }
+                        
+                        const now = moment();
+                        noiseGraph.chart.options.scales.x.min = moment(now).subtract(1, 'minute');
+                        noiseGraph.chart.options.scales.x.max = now;
+                        
+                        noiseGraph.chart.update('none');
+                    }
+                }
+        
+                updateTorqueGraph(motorData) {
+                    const torqueGraph = document.getElementById('torque-graph');
+                    if (torqueGraph && torqueGraph.chart) {
+                        const now = moment().toDate();
+                        
+                        // Update ActuaTorquePercentage
+                        torqueGraph.chart.data.datasets[0].data.push({
+                            x: now,
+                            y: motorData.ActualTorque1
+                        });
+                        
+                        // Update ActualTorquePercentage2
+                        torqueGraph.chart.data.datasets[1].data.push({
+                            x: now,
+                            y: motorData.ActualTorque2
+                        });
+        
+                        // Keep only last 60 points for each dataset
+                        torqueGraph.chart.data.datasets.forEach(dataset => {
+                            if (dataset.data.length > 60) {
+                                dataset.data.shift();
+                            }
+                        });
+        
+                        // Update time window
+                        const momentNow = moment();
+                        torqueGraph.chart.options.scales.x.min = moment(momentNow).subtract(1, 'minute');
+                        torqueGraph.chart.options.scales.x.max = momentNow;
+                        
+                        torqueGraph.chart.update('none');
+                    }
+                }
+        
+                updateDustGraph(airQualityData) {
+                    const selectedSensor = $('#dust-sensor-select').val();
+                    let sensorData;
+                    
+                    switch(selectedSensor) {
+                        case 'LINOVISION':
+                            sensorData = airQualityData['Air Quality Sensor 1'];
+                            break;
+                        case 'NEXTPM1':
+                            sensorData = airQualityData['Air Quality Sensor 2'];
+                            break;
+                        case 'NEXTPM2':
+                            sensorData = airQualityData['Air Quality Sensor 3'];
+                            break;
+                    }
+        
+                    if (!sensorData) return;
+        
+                    const dustGraph = document.getElementById('dust-graph');
+                    if (dustGraph && dustGraph.chart) {
+                        const timestamp = moment(sensorData.timestamp).toDate();
+        
+                        if (selectedSensor === 'LINOVISION') {
+                            dustGraph.chart.data.datasets[0].data.push({
+                                x: timestamp,
+                                y: sensorData.values['Mass concentration in μg / m3 of particles size < 2.5 μm']
+                            });
+                            
+                            dustGraph.chart.data.datasets[1].data.push({
+                                x: timestamp,
+                                y: sensorData.values['Mass concentration in μg / m3 of particles size < 10 μm']
+                            });
+                        } else {
+                            dustGraph.chart.data.datasets[0].data.push({
+                                x: timestamp,
+                                y: sensorData.values['Mass concentration in μg / m3 of particles size < 1 μm']
+                            });
+                            
+                            dustGraph.chart.data.datasets[1].data.push({
+                                x: timestamp,
+                                y: sensorData.values['Mass concentration in μg / m3 of particles size < 2.5 μm']
+                            });
+                            
+                            dustGraph.chart.data.datasets[2].data.push({
+                                x: timestamp,
+                                y: sensorData.values['Mass concentration in μg / m3 of particles size < 10 μm']
+                            });
+                        }
+                        
+                        dustGraph.chart.data.datasets.forEach(dataset => {
+                            if (dataset.data.length > 60) {
+                                dataset.data.shift();
+                            }
+                        });
+                        
+                        const now = moment();
+                        dustGraph.chart.options.scales.x.min = moment(now).subtract(1, 'minute');
+                        dustGraph.chart.options.scales.x.max = now;
+                        
+                        dustGraph.chart.update('none');
+                    }
+                }
+        
+                updateVibrationGraph(vibrationData) {
+                    const selectedSensor = $('#vibration-sensor-select').val();
+                    let sensorData;
+                    
+                    switch(selectedSensor) {
+                        case 'SINDT485-1':
+                            sensorData = vibrationData['Vibration Sensor 1'];
+                            break;
+                        case 'SINDT485-2':
+                            sensorData = vibrationData['Vibration Sensor 2'];
+                            break;
+                    }
+        
+                    if (!sensorData) return;
+        
+                    const vibrationGraph = document.getElementById('vibration-graph');
+                    if (vibrationGraph && vibrationGraph.chart) {
+                        const timestamp = moment(sensorData.timestamp).toDate();
+        
+                        vibrationGraph.chart.data.datasets[0].data.push({
+                            x: timestamp,
+                            y: sensorData.values['Acceleration X in m/sec2']
+                        });
+                        
+                        vibrationGraph.chart.data.datasets[1].data.push({
+                            x: timestamp,
+                            y: sensorData.values['Acceleration Y in m/sec2']
+                        });
+                        
+                        vibrationGraph.chart.data.datasets[2].data.push({
+                            x: timestamp,
+                            y: sensorData.values['Acceleration Z in m/sec2']
+                        });
+                        
+                        vibrationGraph.chart.data.datasets.forEach(dataset => {
+                            if (dataset.data.length > 60) {
+                                dataset.data.shift();
+                            }
+                        });
+                        
+                        const now = moment();
+                        vibrationGraph.chart.options.scales.x.min = moment(now).subtract(1, 'minute');
+                        vibrationGraph.chart.options.scales.x.max = now;
+                        
+                        vibrationGraph.chart.update('none');
+                    }
+                }
+        
+                updateVOCGraph(vocData) {
+                    if (window.updateVOCGraph) {
+                        window.updateVOCGraph(vocData);
+                    }
+                }
+        
+                updateWeighingScaleGraph(scaleData) {
+                    console.log("Weighing Scale Data received:", scaleData);
+                }
+        
+                handleConnectionClose(event) {
+                    console.error('Sensor socket closed unexpectedly');
+                    setTimeout(() => {
+                        console.log("Attempting to reconnect...");
+                        this.initializeWebSocket();
+                    }, 5000);
+                }
+            }
+        
+            const sensorWebSocketManager = new SensorWebSocketManager();
+        });
+        </script>
+
+
+
+<script type="text/javascript">
+    
+// Global variables to track chart instances
+let energyChartInstance = null;
+let co2ChartInstance = null;
+let isFirstDataPoint = true;
+let currentInterval = 0;
+let isZeroIntervalSelected = false;
+
+// Handle form submission
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const timeValue = parseInt(formData.get('time'), 10);
+            
+            currentInterval = timeValue;
+            isFirstDataPoint = true;
+            
+            // Check if zero interval is selected
+            isZeroIntervalSelected = (timeValue === 0);
+
+            // Clear all datasets
+            if (energyChartInstance) {
+                energyChartInstance.data.datasets.forEach(dataset => {
+                    dataset.data = [];
+                });
+                
+                // If zero interval, set initial points to zero
+                if (isZeroIntervalSelected) {
+                    const now = Date.now();
+                    energyChartInstance.data.datasets.forEach(dataset => {
+                        dataset.data.push({ x: now, y: 0 });
+                    });
+                }
+                
+                energyChartInstance.update('none');
+            }
+            if (co2ChartInstance) {
+                co2ChartInstance.data.datasets[0].data = [];
+                
+                // If zero interval, set initial point to zero
+                if (isZeroIntervalSelected) {
+                    const now = Date.now();
+                    co2ChartInstance.data.datasets[0].data.push({ x: now, y: 0 });
+                }
+                
+                co2ChartInstance.update('none');
+            }
+
+            // Submit the form
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+        });
+    }
+});
+
+// Rest of the WebSocket initialization remains the same as in the previous script
+// Establish WebSocket connection after charts are ready
+async function initializeWebSocket() {
+    const charts = await waitForCharts();
+    energyChartInstance = charts.energyChart;
+    co2ChartInstance = charts.co2Chart;
+    console.log('Both charts initialized, connecting WebSocket');
+    
+    const ws = new WebSocket(`ws://${window.location.host}/ws/Main/shelly/`);
+    
+    const deviceMap = {
+        'KUKA Cabinet': 0,
+        'Big Cabinet': 1,
+        'CNC Router': 2,
+        'Big Oven': 3
+    };
+
+    ws.onmessage = function(event) {
+        try {
+            const message = JSON.parse(event.data);
+            if (message.type !== 'energy_data') {
+                console.warn('Invalid message type');
+                return;
+            }
+
+            const now = Date.now();
+
+            // Handle first data point
+            if (isFirstDataPoint) {
+                if (isZeroIntervalSelected) {
+                    // If zero interval was selected, we've already set initial zero points
+                    isFirstDataPoint = false;
+                    return;
+                }
+            }
+
+            // Update Energy Consumption Chart
+            if (energyChartInstance) {
+                // Process device data
+                message.data.devices.forEach(device => {
+                    const datasetIndex = deviceMap[device.name];
+                    if (datasetIndex !== undefined) {
+                        const dataset = energyChartInstance.data.datasets[datasetIndex];
+                        dataset.data.push({ x: now, y: device.power });
+                        console.log(`Added data for ${device.name}: ${device.power}`);
+                    }
+                });
+
+                // Add total power (5th dataset)
+                energyChartInstance.data.datasets[4].data.push({
+                    x: now, 
+                    y: message.data.total.power
+                });
+
+                // Add average power (6th dataset)
+                energyChartInstance.data.datasets[5].data.push({
+                    x: now, 
+                    y: message.data.average.power
+                });
+
+                // Maintain only the last 60 seconds of data
+                const cutoff = now - 60000;
+                energyChartInstance.data.datasets.forEach(dataset => {
+                    dataset.data = dataset.data.filter(point => point.x > cutoff);
+                });
+
+                energyChartInstance.update('none');
+            }
+
+            // Update CO2 Emissions Chart
+            if (co2ChartInstance) {
+                const co2Emissions = message.data.total.power * 0.238;
+                co2ChartInstance.data.datasets[0].data.push({
+                    x: now,
+                    y: co2Emissions
+                });
+
+                const cutoff = now - 60000;
+                co2ChartInstance.data.datasets[0].data = 
+                    co2ChartInstance.data.datasets[0].data.filter(point => point.x > cutoff);
+
+                co2ChartInstance.update('none');
+            }
+
+        } catch (error) {
+            console.error('Error processing WebSocket message:', error);
+        }
+    };
+
+    ws.onopen = () => console.log("WebSocket connected");
+    ws.onerror = (error) => console.error("WebSocket error:", error);
+    ws.onclose = (event) => {
+        console.log("WebSocket disconnected", event);
+        setTimeout(() => {
+            console.log("Attempting to reconnect...");
+            initializeWebSocket();
+        }, 5000);
+    };
+}
+
+// Wait for charts to be fully initialized
+function waitForCharts() {
+    return new Promise((resolve) => {
+        function checkCharts() {
+            if (window.myLineChart && window.co2LineChart) {
+                resolve({
+                    energyChart: window.myLineChart,
+                    co2Chart: window.co2LineChart
+                });
+            } else {
+                setTimeout(checkCharts, 100);
+            }
+        }
+        checkCharts();
+    });
+}
+
+// Initialize WebSocket when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Page loaded, initializing WebSocket');
+    initializeWebSocket();
+});
+
+console.log('WebSocket script loaded, waiting for charts');
+</script>
+
+</body>
+
+
+{% endblock %}

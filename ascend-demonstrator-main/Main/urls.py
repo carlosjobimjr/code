@@ -1,0 +1,52 @@
+from django.urls import path, include
+from . import views
+from django.conf import settings
+from django.conf.urls.static import static
+app_name = 'Main' 
+urlpatterns = [
+    path('', views.index, name='index'),
+    path('showProjects/', views.showProjects, name='showProjects'),
+    path('<int:id>', views.showProcess, name='showProcess'),
+    path('c<int:id>', views.showSubProcess, name='showSub'),
+    path('p<int:id>', views.showAllProcess, name='showAllProcess'),
+    path('environSensors<int:id>', views.showEnvironSensors, name='showEnvironSensors'),
+    path('environGraph<int:id>', views.environGraph, name='environGraph'),
+    path('machineHealth/<int:id>/', views.machineHealth, name='machineHealth'),
+    path('machineHealthShow/<int:id>/', views.machineHealthShow, name='machineHealthShow'),
+    path('newSensor/<int:id>/', views.newSensor, name='newSensor'),
+    path('popUp<int:id>', views.popUp, name='popUp'),
+    path('systemArchitecture<int:id>', views.systemArchitecture, name='systemArchitecture'),
+    path('finalInspection<int:id>', views.showSubProcess, name='finalInspection'),
+    path('final<int:id>', views.final, name='final'),
+    path('partStart/<int:id>/', views.part_start, name='part_start'),
+    path('part_approve/<int:id>/', views.part_approve, name='part_approve'),
+    # path('update-timer/', views.update_timer, name='update_timer'),
+    # path('trigger-init-call/', views.trigger_init_call, name='trigger_init_call'),
+    # path('trigger-tool-heat-call/', views.trigger_tool_heat_call, name='trigger_tool_heat_call'),
+    # path('trigger-tool-ready-call/', views.trigger_tool_ready_call, name='trigger_tool_ready_call'),
+    # path('trigger-blank-in-call/', views.trigger_blank_in_call, name='trigger_blank_in_call'),
+    # path('trigger-blank-pressed-call/', views.trigger_blank_pressed_call, name='trigger_blank_pressed_call'),
+    # path('trigger-tool-cool-call/', views.trigger_tool_cool_call, name='trigger_tool_cool_call'),
+    # path('trigger-part-release-call/', views.trigger_part_release_call, name='trigger_part_release_call'),
+    # path('trigger-part-out-call/', views.trigger_part_out_call, name='trigger_part_out_call'),    
+    path('part_bad<int:id>', views.part_bad, name='part_bad'),
+    path('connect-plc/', views.connect_to_plc, name='connect_plc'),
+    path('noise_chart/', views.noise_chart, name='noise_chart'),
+    path('edge-detection/<int:id>/', include('EdgeDetection.urls', namespace='edge_detection')),
+    path('sensor-data/<int:sensor_id>/', views.get_sensor_data, name='get_sensor_data'),
+    path('api/current-process-id/<int:process_id>/', views.get_current_process_id, name='get_current_process_id'),
+    path('viewImages<int:id>', views.viewImages, name='viewImages'),
+    path('viewImagesDetail<int:id>', views.viewImagesDetail, name='viewImagesDetail'),
+    path('viewImageSpecific<int:id>-<int:part>', views.viewImageSpecific, name='viewImageSpecific'),
+    path('viewFiles<int:id>', views.viewFiles, name='viewFiles'),
+    path('downloadFile<int:id>-<int:part>', views.downloadFile, name='downloadFile'),
+    path('upload', views.showSubProcess, name='upload'),
+    path('p<int:id>/export-project-pdf/', views.export_project_pdf, name='export_project_pdf'),
+    path('p<int:id>/export-supervisor-pdf/', views.export_pdf_supervisor, name='export_pdf_supervisor'),
+    path('export-plies-pdf/<int:id>/', views.export_all_plies_pdf, name='export_all_plies_pdf'),
+    # path('oauth/callback/', views.oauth_callback, name='oauth_callback'),
+    path('exportPDF/', views.export_sensor_data_pdf, name='export_sensor_data_pdf'),
+    path('export/', views.export_sensor_data_csv, name='export_sensor_data_csv'),
+]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

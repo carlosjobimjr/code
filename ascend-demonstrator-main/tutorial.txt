@@ -1,0 +1,11 @@
+cd to this file directory in powershell/terminal
+enter: docker compose build
+enter: docker compose up -d
+enter: docker compose exec web python manage.py makemigrations
+enter: docker compose exec web python manage.py migrate
+enter: docker compose exec web python manage.py collectstatic
+enter: docker compose restart
+
+Navigate to https://localhost
+
+Server should be working as expected

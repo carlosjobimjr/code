@@ -1,0 +1,46 @@
+{%extends 'Main/base.html'%}
+{%load static%}
+{% load compress %}
+
+
+
+
+
+
+{%block content%}
+
+
+<html>
+<head>
+
+<link rel="stylesheet" type="text/css" href="{% static 'Main/indexStyle.css'%}">
+
+</head>
+
+<title></title>
+<body>
+
+
+<div class="contentWrapper">
+
+	{%if admin%}
+		<div>
+			<a href="AMOTAdmin">Admin</a>
+			<br>
+			<a href = "EnergyCapture/addStation/">Energy Capture</a>
+			<br>
+			<a href="EnergyCapture/energyCaptureDashboard">DASHBOARD</a>
+		</div>
+	{%endif%}
+
+
+</div>
+
+
+</body>
+</html>
+{%endblock%}
+
+
+
+

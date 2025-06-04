@@ -1,0 +1,1303 @@
+{%extends 'Main/base.html'%}
+
+{%block title%} Airborne Dashboard {%endblock%}
+
+{%block pageTitle%}Airborne Dashboard{%endblock%}
+
+{%block content%}
+
+{%load static%}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.0/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  function popUpFunction(id) { //gets popup element and shows it
+  var popup = document.getElementById("myPopup" + id);
+  popup.classList.toggle("show");
+} 
+
+</script>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'Dashboard/dashboard.css'%}" />
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+
+    <title>AMOT Dashboard</title>
+<style>
+#cmb-char {
+    position: relative;
+}
+
+.dropdown-container {
+    position: absolute;
+    display: inline-block;
+    width: 200px;
+    right: 20px;
+}
+
+.charts__left,
+.charts__right {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.charts__left__header,
+.charts__right__header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+    width: 100%;
+}
+
+.title {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.title h1 {
+    font-size: 24px;
+    margin: 0;
+}
+
+.company-name {
+    font-size: 16px;
+    margin-top: 5px;
+}
+
+.submit-button {
+    background: linear-gradient(to bottom right, #6d28d9, #3b82f6);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: background 0.3s ease;
+}
+
+.submit-button:hover {
+    background: linear-gradient(to bottom right, #5b21b6, #2563eb);
+}
+
+.button-container-middle {
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.product-select {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.product-select label {
+    margin-right: 5px;
+}
+
+.doughnut-charts {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.chart-container {
+    flex: 1;
+}
+
+.doughnut-chart {
+    width: 100%;
+    height: auto;
+}
+
+.chart-container-full {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.doughnut-chart-full {
+    width: 60%;
+    height: auto;
+}
+
+.form-container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.form-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: center;
+}
+
+.bottleneck-display {
+    width: 200;
+    padding: 8px;
+    margin-top: 15px;
+    background: white;
+    border: 2px solid #ff0000;
+    border-radius: 6px;
+    box-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
+    text-align: center;
+    font-size: 0.85rem;
+    animation: flash-red 1.5s infinite;
+}
+
+.bottleneck-display .ote-value {
+    font-weight: bold;
+    color: #333;
+}
+
+.bottleneck-display .bottleneck-text {
+    color: #ff0000;
+    font-weight: bold;
+    margin: 5px 0;
+}
+
+.bottleneck-display .bi-values {
+    color: #666;
+    font-size: 0.8rem;
+}
+
+@keyframes flash-red {
+    0% { border-color: #ff0000; box-shadow: 0 0 8px rgba(255, 0, 0, 0.4); }
+    50% { border-color: #ff4d4d; box-shadow: 0 0 12px rgba(255, 77, 77, 0.6); }
+    100% { border-color: #ff0000; box-shadow: 0 0 8px rgba(255, 0, 0, 0.4); }
+}
+
+@media (max-width: 768px) {
+    .bottleneck-display {
+        width: 120px;
+        margin-top: 10px;
+    }
+}
+
+    </style>
+
+
+  </head>
+  <body id="body" style="min-height:auto">
+      <main>
+        <div class="backlinkContainer">
+      <a href="/projectDash/" id="backNav">go back link</a>
+      </div>
+        <div class="main__container">
+          <!-- MAIN TITLE STARTS HERE -->
+
+          <div class="main__title">
+            <div class="main__greeting">
+              <h1>Hello {{user.username}}</h1>
+              <p>Welcome to {{user.profile.user_company}}'s dashboard</p>
+            </div>
+          </div>
+
+          <!-- MAIN TITLE ENDS HERE -->
+
+          <!-- MAIN CARDS STARTS HERE -->
+          <div class="main__cards">
+            <div class="card">
+              <div class="card_inner">
+                <p class="text-primary-p">Number of Parts</p>
+                <span class="font-bold text-title">1</span>
+              </div>
+              <div class="popup1", id="criterion" onclick="popUpFunction({{project.id}})">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                      <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+                    </svg>
+                    <span class="popuptext1" id="myPopup{{project.id}}"> 
+                      
+                      <ul style="color: black;">
+                        <center><h3 style = "color:black;">Parts for this Project</h3></center>
+                      {%for part in project.part_set.all%}
+                        
+                          <a href="/partDetail{{part.part_id}}">{{part}} - {{part.date}}</a><BR></BR>
+
+                        
+                      {%endfor%}
+                      </ul>
+
+                    </span>
+            </div>
+            </div>
+
+            <div class="card">
+              <!--<i class="fa fa-calendar fa-2x text-red" aria-hidden="true"></i>-->
+              <div class="card_inner">
+                <p class="text-primary-p">Total Cycle Time</p>
+                <span class="font-bold text-title">{{totalCycle}}</span>
+              </div>
+            </div>
+
+            <div class="card">
+             <!--<i
+                class="fa fa-video-camera fa-2x text-yellow"
+                aria-hidden="true"
+              ></i>-->
+              <div class="card_inner">
+                <p class="text-primary-p">Total Labour Hours</p>
+                <span class="font-bold text-title">{{totalLabourHours}}</span>
+              </div>
+            </div>
+
+            <div class="card">
+             <!-- <i
+                class="fa fa-thumbs-up fa-2x text-green"
+                aria-hidden="true"
+              ></i>-->
+              <div class="card_inner">
+                <p class="text-primary-p">Total Labour costs</p>
+                <span class="font-bold text-title">£{{totalLabourCost}}</span>
+              </div>
+            </div>
+          </div>
+          <!-- MAIN CARDS ENDS HERE -->
+
+          <!-- CHARTS STARTS HERE -->
+          <div class="charts">
+
+            <div class="charts__left" id="cmb-char">
+              <!-- CHARTS STARTS HERE -->
+
+              <div class="dropdown-container relative">
+                <button class="dropdown-button bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Select Projects</button>
+                <div class="dropdown-content absolute hidden bg-white shadow-md rounded mt-1 w-64" id="dropdown-content"></div>
+              </div>
+
+            <div class="charts__left__title">
+              <div>
+                <h1>Project Overview</h1>
+                <p>{{ user.profile.user_company }}</p>
+              </div>
+              <i class="fa fa-usd" aria-hidden="true"></i>
+            </div>
+            <canvas id="combined-chart" data-url="{% url 'combinedGraph' %}"></canvas>
+          </div>
+
+            <div class="charts__right">
+              <div class="charts__right__title">
+                <div>
+                  <h1>KPI's</h1>
+                  <p>{{user.profile.user_company}}</p>
+                </div>
+                <i class="fa fa-usd" aria-hidden="true"></i>
+              </div>
+
+              <div class="charts__right__cards">
+                <div class="card1">
+                  <h1>Process Time</h1>
+                  <p>{{processTime}}</p>
+                </div>
+
+                <div class="card2">
+                  <h1>Interface Time</h1>
+                  <p>{{interfaceTime}}</p>
+                </div>
+
+                <div class="card3">
+                  <h1>Av. Scrap Rate</h1>
+                  <p>5%</p>
+                </div>
+
+                <div class="card4">
+                  <h1>Total Cost</h1>
+                  <p>{{totalCost}}</p>
+                </div>
+
+              </div>
+            </div>           
+    
+            <div class="charts__left">
+              <div class="charts__left__title">
+                <div>
+                  <h1>Time Breakdown</h1>
+                  <p>{{user.profile.user_company}}</p>
+                </div>
+                <i class="fa fa-usd" aria-hidden="true"></i>
+              </div>
+              <canvas id="pie-chart" data-url="{% url 'pieChart' project.id %}"></canvas>
+            </div>
+            <div class="charts__right">
+              <div class="charts__right__title">
+                <div>
+                  <h1>Sub Process Cycles</h1>
+                  <p>{{user.profile.user_company}}</p>
+                </div>
+                <i class="fa fa-usd" aria-hidden="true"></i>
+              </div>
+              <canvas id="sub-chart" data-url="{% url 'subChart' project.id metricChoice %}"></canvas>
+              <form method="POST" action="#">
+            {%csrf_token%}    
+            <div>{{form}}</div> 
+            <button type="submit", name="selectMetric", value="add" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">Change</button>
+          </form>
+
+            <form method ='POST' action='#'>
+            {%csrf_token%}  
+            <div>{{timeform}}</div>
+            <button type="submit", name="selectTime", value="add" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">Change</button>
+          </form>
+
+          </div>
+
+           <div class="charts__left">
+              <div class="charts__left__title">
+                <div>
+                  <h1>Cost Breakdown</h1>
+                  <p>{{user.profile.user_company}}</p>
+                </div>
+                <i class="fa fa-usd" aria-hidden="true"></i>
+              </div>
+             <canvas id="pie-cost-chart" data-url="{% url 'pieCostChart' project.id %}"></canvas>
+            </div>
+
+            
+            <div class="charts__right">
+    <!-- Title section -->
+    <div class="charts__right__title">
+        <div>
+            <h1>Cost Model Breakdown Chart</h1>
+            <p>{{user.profile.user_company}}</p>
+        </div>
+        <i class="fa fa-usd" aria-hidden="true"></i>
+    </div>
+
+    <!-- Chart -->
+    <canvas id="cost-model-chart" data-url="{% url 'costModelChart' project.id error mID%}"></canvas>
+    <br></br>
+
+    <!-- Assumed Cost Form -->
+    <form method="POST" action="#" class="form1">
+        {%csrf_token%}
+        <div>{{assumedform}}</div>
+        <button type="submit" name="AssumedC" value="add" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">Change Initial Investment Cost</button>
+        <p id="error">{{error}}</p>
+    </form>
+
+    <form method="POST" class="form2" style="display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 100%;">
+        {% csrf_token %}
+        <select name="manual_project" style="
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 14px;
+            height: 40px;
+            width: 200px; /* Reduced width */
+        ">
+            <option value="">Select a Project</option>
+            <option value="manual_project">Manual Project</option>
+            {% for project in user.profile.user_company.project_set.all %}
+                {% if project.manual %}
+                    <option value="{{ project.id }}">{{ project.project_name }}</option>
+                {% endif %}
+            {% endfor %}
+        </select>
+        <button 
+            type="submit" 
+            name="manualProjectChoice" 
+            value="add" 
+            class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+        >
+            Select Manual Project
+        </button>
+     </form>
+    <!-- Learning Rate Form -->
+    <form method="POST" action="#" class="form2">
+    {% csrf_token %}
+    <div>{{learningrateform}}</div>
+    <button type="submit" name="learningRate" value="add" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">Change Learning Rate</button>
+</form>
+
+    <!-- Info Popup -->
+    <div class="popup" id="myPopup" onclick="popUpFunction(2)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+        </svg>
+        <span class="popuptext" id="myPopup2">
+            <ul style="color: black;">
+                <center><h3 style="color:black;">Cost model breakdown</h3></center>
+                <p><strong>Assumed Cost</strong>: The part number at which the projected cost will be calculated from (usually an early part with representative data)</p>
+                <p><strong>Select manual project</strong>: The manual project that will be compared against the automated one</p>
+                <p><strong>WARNING</strong>: The assumed cost part number must exist in both the automated and manual projects if comparing</p>
+                <p><strong>Learning rate</strong>: The learning rate is a percentage from 0-1 and is the rate at which production improves time efficiency for each part made</p>
+            </ul>
+        </span>
+    </div>
+
+   
+</div>
+
+
+          <!-- Lion Cell OEE Card -->
+<div class="charts__left">
+    <!-- Header Row -->
+    <div class="charts__left__header">
+        <div class="title">
+            <h1>Lion Cell OEE</h1>
+            <p class="company-name">{{ user.profile.user_company }}</p>
+        </div>
+        <!-- Display Total OEE Button -->
+        <div class="button-container-middle">
+            <button class="submit-button display-total-oee">
+                Display Lion Cell OEE
+            </button>
+        </div>
+        <!-- Select Product Dropdown -->
+        <div class="form-group product-select">
+            <label for="oee_type">Select Blank:</label>
+            <select name="oee_type" id="oee_type" class="form-control">
+                <option value="blank_a">Blank A</option>
+                <option value="blank_b">Blank B</option>
+            </select>
+        </div>
+    </div>
+    <!-- Doughnut Charts Row -->
+    <div class="doughnut-charts">
+        <div class="chart-container">
+            <canvas id="lion-cell-availability" class="doughnut-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="lion-cell-performance" class="doughnut-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="lion-cell-quality" class="doughnut-chart"></canvas>
+        </div>
+    </div>
+    <!-- Total OEE Chart -->
+    <div class="chart-container-full">
+        <canvas id="lion-cell-total" class="doughnut-chart-full"></canvas>
+    </div>
+    <!-- OEE Parameters Form -->
+    <div class="form-container">
+        <form id="oeeForm" method="post" action="{% url 'calculate_oee' project.id %}">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    {{ oee_parameters_form.start_date.label_tag }}
+                    {{ oee_parameters_form.start_date }}
+                </div>
+                <div class="form-group">
+                    {{ oee_parameters_form.start_time.label_tag }}
+                    {{ oee_parameters_form.start_time }}
+                </div>
+                <div class="form-group">
+                    {{ oee_parameters_form.end_date.label_tag }}
+                    {{ oee_parameters_form.end_date }}
+                </div>
+                <div class="form-group">
+                    {{ oee_parameters_form.end_time.label_tag }}
+                    {{ oee_parameters_form.end_time }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    {{ oee_parameters_form.number_of_shifts.label_tag }}
+                    {{ oee_parameters_form.number_of_shifts }}
+                </div>
+                <div class="form-group">
+                    {{ oee_parameters_form.hours_per_shift.label_tag }}
+                    {{ oee_parameters_form.hours_per_shift }}
+                </div>
+            </div>
+            <div class="button-container">
+                <button type="submit" name="Calculate_OEE" class="submit-button">Calculate OEE</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Press OEE Card -->
+<div class="charts__right">
+    <!-- Header Row -->
+    <div class="charts__right__header">
+        <div class="title">
+            <h1>Press OEE</h1>
+            <p class="company-name">{{ user.profile.user_company }}</p>
+        </div>
+        <!-- Display Press OEE Button -->
+        <div class="button-container-middle">
+            <button class="submit-button display-press-oee">
+                Display Press OEE
+            </button>
+        </div>
+        <!-- Select Part Dropdown -->
+     
+    </div>
+    <!-- Doughnut Charts Row -->
+    <div class="doughnut-charts">
+        <div class="chart-container">
+            <canvas id="press-availability" class="doughnut-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="press-performance" class="doughnut-chart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="press-quality" class="doughnut-chart"></canvas>
+        </div>
+    </div>
+    <!-- Total OEE Chart -->
+    <div class="chart-container-full">
+        <canvas id="press-total" class="doughnut-chart-full"></canvas>
+    </div>
+    <!-- OEE Parameters Form -->
+    <div class="form-container">
+        <form id="oeeFormPress" method="post" action="{% url 'calculate_oee' project.id %}">
+            {% csrf_token %}
+            <div class="form-row">
+                <div class="form-group">
+                    {{ oee_parameters_form.start_date.label_tag }}
+                    {{ oee_parameters_form.start_date }}
+                    {{ oee_parameters_form.start_time.label_tag }}
+                    {{ oee_parameters_form.start_time }}
+                </div>
+                <div class="form-group">
+                    {{ oee_parameters_form.end_date.label_tag }}
+                    {{ oee_parameters_form.end_date }}
+                    {{ oee_parameters_form.end_time.label_tag }}
+                    {{ oee_parameters_form.end_time }}
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    {{ oee_parameters_form.number_of_shifts.label_tag }}
+                    {{ oee_parameters_form.number_of_shifts }}
+                </div>
+                <div class="form-group">
+                    {{ oee_parameters_form.hours_per_shift.label_tag }}
+                    {{ oee_parameters_form.hours_per_shift }}
+                </div>
+            </div>
+            <div class="button-container">
+                <button type="submit" name="Calculate_OEE" class="submit-button">Calculate OEE</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+          <!-- Factory OTE Card -->
+<div class="charts__left">
+    <div class="charts__left__title">
+        <div>
+            <h1>Factory OTE</h1>
+            <p>{{user.profile.user_company}}</p>
+        </div>
+        <i class="fa fa-usd" aria-hidden="true"></i>
+    </div>
+    <div class="chart-container-full">
+    <canvas id="ote-chart" class="doughnut-chart-full"></canvas>
+    <div id="bottleneck-display" class="bottleneck-display" style="display: none;"></div>
+</div>
+</div>
+
+
+            
+            <!-- CHARTS ENDS HERE -->
+      </main>
+  </body>
+
+{%endblock%}
+
+
+{%block script%}
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+
+
+<script type="text/javascript" >
+$(function () {
+    // Initialize the chart with empty data
+    var ctx = $("#combined-chart")[0].getContext("2d");
+    var combinedChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    label: 'Parts',
+                    backgroundColor: '#80aaff',
+                    data: []
+                },
+                {
+                    label: 'Blanks',
+                    backgroundColor: '#5c00e6',
+                    data: []
+                },
+                {
+                    label: 'Plies',
+                    backgroundColor: '#ff66ff',
+                    data: []
+                }
+            ]          
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        min: 0,                  
+                    },
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Count'
+                    }
+                }], 
+                xAxes: [{
+                    scaleLabel: {
+                        display: true,
+                        labelString: 'Project Names'                           
+                    }
+                }]
+            },
+            responsive: true,
+            legend: {
+                position: 'top'
+            },
+            title: {
+                display: true,
+                text: 'Project Overview Bar Chart'
+            }
+        }
+    });
+
+    // Local storage for initial data
+    var initialData = {
+        labels: [],
+        data_parts: [],
+        data_blanks: [],
+        data_plies: []
+    };
+
+    // Function to update the chart based on selected projects
+    function updateChart() {
+        var selectedProjects = Array.from($('input[name="project"]:checked')).map(input => $(input).val());
+
+        var filteredData = {
+            labels: [],
+            data_parts: [],
+            data_blanks: [],
+            data_plies: []
+        };
+
+        selectedProjects.forEach(project => {
+            var index = initialData.labels.indexOf(project);
+            if (index !== -1) {
+                filteredData.labels.push(initialData.labels[index]);
+                filteredData.data_parts.push(initialData.data_parts[index]);
+                filteredData.data_blanks.push(initialData.data_blanks[index]);
+                filteredData.data_plies.push(initialData.data_plies[index]);
+            }
+        });
+
+        combinedChart.data.labels = filteredData.labels;
+        combinedChart.data.datasets[0].data = filteredData.data_parts;
+        combinedChart.data.datasets[1].data = filteredData.data_blanks;
+        combinedChart.data.datasets[2].data = filteredData.data_plies;
+        combinedChart.update();
+    }
+
+    // Fetch projects and initial data for the chart
+    $.ajax({
+        url: '/combinedGraph/',  // Use the endpoint that provides project list and initial data
+        success: function (data) {
+            var $dropdownContent = $('#dropdown-content');
+            if (data.labels.length > 0) {
+                initialData.labels = data.labels;
+                initialData.data_parts = data.data_parts;
+                initialData.data_blanks = data.data_blanks;
+                initialData.data_plies = data.data_plies;
+
+                data.labels.forEach((label, index) => {
+                    var $checkbox = $('<label class="dropdown-item block px-4 py-2 hover:bg-gray-100 cursor-pointer">')
+                        .append(`<input type="checkbox" name="project" value="${label}"> ${label}`);
+                    $dropdownContent.append($checkbox);
+                });
+
+                // Event listener for checkboxes
+                $('input[name="project"]').on('change', updateChart);
+
+                // Initialize chart with the initial data
+                combinedChart.data.labels = data.labels;
+                combinedChart.data.datasets[0].data = data.data_parts;
+                combinedChart.data.datasets[1].data = data.data_blanks;
+                combinedChart.data.datasets[2].data = data.data_plies;
+                combinedChart.update();
+            } else {
+                $('.dropdown-content').addClass('hidden'); // Hide the dropdown button if no projects
+            }
+        }
+    });
+
+    // Handle dropdown visibility
+    $('.dropdown-button').on('click', function(event) {
+        event.stopPropagation();
+        $('#dropdown-content').toggleClass('hidden');
+    });
+
+    $(window).on('click', function(event) {
+        if (!$('.dropdown-container').is(event.target) && $('.dropdown-container').has(event.target).length === 0) {
+            $('#dropdown-content').addClass('hidden');
+        }
+    });
+});
+
+
+
+
+
+$(function () {
+    var $subChart = $("#sub-chart");
+    $.ajax({
+        url: $subChart.data("url"),
+        success: function (data) {
+            var ctx = $subChart[0].getContext("2d");
+            console.log("Data for date range:", data.dateRange);
+            console.log("Labels:", data.labels);
+            console.log("Values:", data.data);
+            
+            // Format the label based on the units
+            var yAxisLabel = data.metricName;
+            if (data.units) {
+                yAxisLabel += ` (${data.units})`;
+            }
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: `${data.metricName} (${data.dateRange.start} to ${data.dateRange.end})`,
+                        backgroundColor: '#85e085',
+                        data: data.data
+                    }]          
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: yAxisLabel
+                            },
+                            ticks: {
+                                min: 0,
+                                callback: function(value) {
+                                    if (data.units === "percentage") {
+                                        return value + '%';
+                                    } else if (data.units === "seconds") {
+                                        return value.toFixed(1) + 's';
+                                    } else if (data.units === "kWh") {
+                                        return value + ' kWh';
+                                    }
+                                    return value;
+                                }
+                            }
+                        }],
+                        xAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Sub Process'
+                            }
+                        }]
+                    },
+                    responsive: true,
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: [`${data.metricName} by Sub Process`, 
+                              `${data.dateRange.start} to ${data.dateRange.end}`]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var value = tooltipItem.yLabel;
+                                if (data.units === "percentage") {
+                                    return value + '%';
+                                } else if (data.units === "seconds") {
+                                    return value.toFixed(1) + ' seconds';
+                                } else if (data.units === "kWh") {
+                                    return value + ' kWh';
+                                }
+                                return value;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+});
+ 
+$(function () {
+
+      var $pieChart = $("#pie-chart");
+      $.ajax({
+        url: $pieChart.data("url"),
+        success: function (data) {
+          var ctx = $pieChart[0].getContext("2d");
+          new Chart(ctx, {
+            type:'doughnut',
+            data:{
+              labels: data.labels,
+              datasets: [{
+                label: 'Time Pie Chart',
+                backgroundColor: ['#99ddff','#ffb3ff'],
+                data:data.data,
+              }]
+                    }
+
+
+          });
+
+
+        }
+      });
+    })   
+
+$(function () {
+
+      var $pieChart = $("#pie-cost-chart");
+      $.ajax({
+        url: $pieChart.data("url"),
+        success: function (data) {
+          var ctx = $pieChart[0].getContext("2d");
+          new Chart(ctx, {
+            type:'doughnut',
+            data:{
+              labels: data.labels,
+              datasets: [{
+                label: 'Cost Pie Chart',
+                backgroundColor: ['#bf80ff','#ffa64d', '#ffe066'],
+                data:data.data,
+              }]
+                    }
+
+
+          });
+
+
+        }
+      });
+    })   
+
+
+ 
+    $(document).ready(function() {
+    var $costModelChart = $("#cost-model-chart");
+    $costModelChart.attr('width', '800');
+    $costModelChart.attr('height', '400');
+
+    var chart = null;
+    var chartConfig = {
+        demoInitialCost: 500357,  
+        manualInitialCost: 85122,  
+        demoLearningRate: 0.90,  
+        manualLearningRate: 0.99, 
+        showManual: false
+    };
+
+    // Function to create the chart
+    function createChart() {
+        if (chart) {
+            chart.destroy();
+        }
+
+        var ctx = $costModelChart[0].getContext("2d");
+
+        // Update the demo data based on learning rate
+        const demoData = Array.from({ length: 101 }, (_, i) => {
+            if (i === 0) return chartConfig.demoInitialCost;
+            // Adjust growth rate based on learning rate (slower growth for lower learning rate)
+            const growthRate = (957000 - 834587) / (99 - 1);
+            const demoGrowthFactor = Math.pow(i, Math.log(chartConfig.demoLearningRate, 2));  // Exponential decay based on learning rate
+            return chartConfig.demoInitialCost + (i - 1) * growthRate * demoGrowthFactor;
+        });
+
+        let datasets = [{
+            label: `Demonstrator Demo (${(chartConfig.demoLearningRate * 100).toFixed(0)}% Learning Rate)`,
+            backgroundColor: '#4361ee',
+            borderColor: '#4361ee',
+            data: demoData,
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 1,
+            pointHoverRadius: 4
+        }];
+
+        if (chartConfig.showManual) {
+            const manualData = Array.from({ length: 101 }, (_, i) => {
+                if (i === 0) return chartConfig.manualInitialCost;
+                const growthRate = (1000000 - 85121.99) / (99 - 1);
+                return chartConfig.manualInitialCost + (i - 1) * growthRate;
+            });
+
+            datasets.push({
+                label: `Manual Project (${(chartConfig.manualLearningRate * 100).toFixed(0)}% Learning Rate)`,
+                backgroundColor: '#e63946',
+                borderColor: '#e63946',
+                data: manualData,
+                fill: false,
+                borderWidth: 2,
+                pointRadius: 1,
+                pointHoverRadius: 4
+            });
+        }
+
+        chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: Array.from({ length: 101 }, (_, i) => i),
+                datasets: datasets
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                animation: false,
+                scales: {
+                    xAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Number of Units',
+                            fontSize: 14,
+                            fontStyle: 'bold'
+                        },
+                        ticks: {
+                            min: 0,
+                            max: 100
+                        }
+                    }],
+                    yAxes: [{
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Cumulative Cost',
+                            fontSize: 14,
+                            fontStyle: 'bold'
+                        },
+                        ticks: {
+                            min: 0,
+                            max: 1000000,
+                            callback: function(value) {
+                                return '£' + (value / 1000).toLocaleString() + ',000';
+                            }
+                        }
+                    }]
+                },
+                legend: {
+                    position: 'top'
+                },
+                tooltips: {
+                    callbacks: {
+                        label: function(tooltipItem, data) {
+                            return data.datasets[tooltipItem.datasetIndex].label + ': £' + 
+                                   (tooltipItem.yLabel / 1000).toLocaleString() + ',000';
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Form submissions for assumed cost, manual project, and learning rate
+    $('form.form1').on('submit', function(e) {
+        e.preventDefault();
+        var assumedCost = parseInt($(this).find('input[name="value"]').val());
+        if (!isNaN(assumedCost) && assumedCost >= 0) {
+            chartConfig.demoInitialCost = assumedCost * 1000;
+            createChart();
+        }
+    });
+
+    $('form.form2').on('submit', function(e) {
+        e.preventDefault();
+        if ($(this).find('button[name="manualProjectChoice"]').length) {
+            chartConfig.showManual = true;
+            createChart();
+        }
+    });
+
+    $('form:has(button[name="learningRate"])').on('submit', function(e) {
+        e.preventDefault();
+        var $input = $(this).find('input[type="text"]');
+        var newRate = parseFloat($input.val());
+        if (!isNaN(newRate) && newRate > 0 && newRate <= 100) {
+            chartConfig.demoLearningRate = newRate / 100;  // Update learning rate for Demonstrator Demo
+            createChart();
+        }
+    });
+
+    createChart();  // Initial chart creation
+});
+
+
+</script>
+<script>
+
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    const centerTextPlugin = {
+        id: 'centerText',
+        afterDraw: function(chart) {
+            const ctx = chart.ctx;
+            const chartArea = chart.chartArea;
+            const centerX = (chartArea.left + chartArea.right) / 2;
+            const centerY = (chartArea.top + chartArea.bottom) / 2;
+            
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = '#000';
+            ctx.font = '16px Arial';
+            
+            const value = chart.data.datasets[0].data[0];
+            ctx.fillText(`${value.toFixed(2)}%`, centerX, centerY);
+            ctx.restore();
+        }
+    };
+
+    class OEEChartManager {
+        constructor() {
+            this.charts = this.initializeAllCharts();
+            this.state = {
+                lionProduct: 'blank_a',
+                pressProduct: 'part_a',
+                lionOEECalculated: false,
+                pressOEECalculated: false,
+                lastPressData: null,
+                lastLionData: null
+            };
+        }
+
+        initializeChart(elementId, label) {
+            return new Chart(document.getElementById(elementId), {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: ['#4caf50', '#d3d3d3']
+                    }],
+                    labels: [label, '']
+                },
+                options: {
+                    cutout: '75%',
+                    rotation: -Math.PI / 2,
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return `${tooltipItem.label}: ${tooltipItem.raw.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [centerTextPlugin]
+            });
+        }
+
+        initializeAllCharts() {
+            return {
+                lionCell: {
+                    availability: this.initializeChart('lion-cell-availability', 'Availability'),
+                    performance: this.initializeChart('lion-cell-performance', 'Performance'),
+                    quality: this.initializeChart('lion-cell-quality', 'Quality'),
+                    oee: this.initializeChart('lion-cell-total', 'Lion Cell OEE')
+                },
+                press: {
+                    availability: this.initializeChart('press-availability', 'Availability'),
+                    performance: this.initializeChart('press-performance', 'Performance'),
+                    quality: this.initializeChart('press-quality', 'Quality'),
+                    oee: this.initializeChart('press-total', 'Press OEE')
+                },
+                ote: this.initializeChart('ote-chart', 'OTE')
+            };
+        }
+
+        updateChart(chart, value) {
+            const safeValue = Math.min(Math.max(0, value), 100);
+            chart.data.datasets[0].data = [safeValue, 100 - safeValue];
+            chart.update();
+        }
+
+        updateEquipmentCharts(equipment, data) {
+    console.log(`Updating ${equipment} charts with data:`, data);
+    
+    const equipmentCharts = this.charts[equipment];
+    this.updateChart(equipmentCharts.availability, data.availability); // Updated availability
+    this.updateChart(equipmentCharts.performance, data.performance);
+    this.updateChart(equipmentCharts.quality, data.quality);
+    this.updateChart(equipmentCharts.oee, data.oee);
+
+    // Update state
+    if (equipment === 'lionCell') {
+        this.state.lastLionData = data;
+        this.state.lionOEECalculated = true;
+    } else {
+        this.state.lastPressData = data;
+        this.state.pressOEECalculated = true;
+    }
+
+    if (this.state.lionOEECalculated && this.state.pressOEECalculated) {
+        this.calculateOTE(); // Calculate OTE if both are ready
+    }
+}
+
+
+calculateOTE() {
+    if (!this.state.lastLionData || !this.state.lastPressData) return;
+    
+    const formData = new FormData();
+    formData.append('lion_oee', this.state.lastLionData.oee);
+    formData.append('lion_rate', this.state.lastLionData.actual_rate);
+    formData.append('press_oee', this.state.lastPressData.oee);
+    formData.append('press_rate', this.state.lastPressData.actual_rate);
+    formData.append('press_quality', this.state.lastPressData.quality);
+
+    fetch(`/calculate_ote/${window.location.pathname.split('/dashboard/')[1] || '1'}/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) return;
+
+        this.updateChart(this.charts.ote, data.ote);
+        
+        const bottleneckDisplay = document.getElementById('bottleneck-display');
+        if (bottleneckDisplay) {
+            bottleneckDisplay.style.display = 'block';
+            bottleneckDisplay.innerHTML = `
+                <div class="ote-value">OTE: ${data.ote.toFixed(2)}%</div>
+                <div class="bottleneck-label">BOTTLENECK:${data.bottleneck}</div>
+                <div class="bi-values">Lion: ${data.bi_lion}% | Press: ${data.bi_press}%</div>
+            `;
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+
+        handleFormSubmission(formElement, equipment) {
+            formElement.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(formElement);
+                
+                // Add product type to form data based on equipment type
+                const productType = equipment === 'lion' ? this.state.lionProduct : this.state.pressProduct;
+                formData.append('product_type', productType);
+
+                fetch(formElement.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(`${equipment} OEE calculation error:`, data.error);
+                        return;
+                    }
+                    this.updateEquipmentCharts(equipment === 'lion' ? 'lionCell' : 'press', data);
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+
+        setupEventListeners() {
+            // Get the forms
+            const lionForm = document.getElementById('oeeForm');
+            const pressForm = document.getElementById('oeeFormPress');
+            
+            // Set up form submissions
+            if (lionForm) this.handleFormSubmission(lionForm, 'lion');
+            if (pressForm) this.handleFormSubmission(pressForm, 'press');
+
+            // Product type selection handlers
+            document.getElementById('oee_type')?.addEventListener('change', (e) => {
+                this.state.lionProduct = e.target.value;
+                lionForm?.dispatchEvent(new Event('submit'));
+            });
+
+            document.getElementById('oee_type_press')?.addEventListener('change', (e) => {
+                this.state.pressProduct = e.target.value;
+                pressForm?.dispatchEvent(new Event('submit'));
+            });
+
+            // Set up the total buttons with clear names
+            const totalPressButton = document.querySelector('.display-press-oee');
+            if (totalPressButton) {
+                totalPressButton.textContent = 'Calculate Total Press OEE';
+                totalPressButton.addEventListener('click', () => {
+                    this.state.pressProduct = 'total_press';
+                    pressForm?.dispatchEvent(new Event('submit'));
+                });
+            }
+
+            const totalLionButton = document.querySelector('.display-total-oee');
+            if (totalLionButton) {
+                totalLionButton.textContent = 'Calculate Total Lion Cell OEE';
+                totalLionButton.addEventListener('click', () => {
+                    this.state.lionProduct = 'total_lion';
+                    lionForm?.dispatchEvent(new Event('submit'));
+                });
+            }
+
+            // Initial calculations
+            lionForm?.dispatchEvent(new Event('submit'));
+            pressForm?.dispatchEvent(new Event('submit'));
+        }
+    }
+
+    // Initialize and setup
+    const oeeManager = new OEEChartManager();
+    oeeManager.setupEventListeners();
+});
+
+</script>
+
+
+{%endblock%}

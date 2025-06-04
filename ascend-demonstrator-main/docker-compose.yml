@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: web
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/opt/WP-1-4
+      - static_volume:/opt/WP-1-4/static
+    environment:
+      - DJANGO_SETTINGS_MODULE=WP1_4.settings
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mysql
+      - redis
+
+  mysql:
+    image: mysql:latest
+    restart: always
+    container_name: mysql
+    environment:
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  redis:
+    image: redis:latest
+    restart: always
+    container_name: redis
+    ports:
+      - '6379:6379'
+
+  celery:
+    build: .
+    command: celery -A WP1_4 worker --loglevel=info
+    container_name: celery
+    depends_on:
+      - redis
+      - mysql
+
+  celery_beat:
+    build: .
+    command: celery -A WP1_4 beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    container_name: celery_beat
+    depends_on:
+      - celery
+      - mysql
+
+  daphne:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: asgiserver
+    command: daphne -b 0.0.0.0 -p 8001 WP1_4.asgi:application
+    ports:
+    - "8001:8000"
+    depends_on:
+    - redis
+    - mysql
+
+  nginx:
+    build: ./nginx
+    restart: always
+    ports:
+    - 443:443
+    - 80:80
+    volumes:
+    - .static_volume:/static
+    container_name: nginx
+    depends_on:
+    - web
+    
+volumes:
+  mysql-data:
+  static_volume:
+  

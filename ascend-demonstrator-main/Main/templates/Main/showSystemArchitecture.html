@@ -1,0 +1,194 @@
+{% extends 'Main/base.html' %}
+
+{% block title %}{{selected_project.project_name}} System Architecture{% endblock %}
+
+{% block pageTitle %}{{selected_project.project_name}} System Architecture{% endblock %}
+
+{% block content %}
+<head>
+    <style>
+        .status-box {
+            width: 100%;
+            height: 30px;
+            border-radius: 20px;
+            margin-bottom: 5px;
+        }
+        .status-green {
+            background-color: #10B981;
+        }
+        .status-amber {
+            background-color: rgb(255, 191, 0);
+        }
+        .status-red {
+            background-color: red;
+        }
+        .sensor-name {
+            text-align: center;
+            margin-bottom: 5px;
+            padding: 5px;
+        }
+        .sensor-container {
+            width: 100%;
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .sensor-item {
+            background-color: #10B981;
+            padding: 8px 16px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .sensor-text {
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+        }
+        .motor-text {
+            font-size: 14px;
+            font-weight: bold;
+            color: #9333ea;
+        }
+    </style>
+</head>
+
+<div class="backLinkContainer">
+    <a href="p{{selected_project.id}}" id="backNav"><- Project</a>
+</div>
+
+<body>
+    <center>
+        <!-- Status Legend -->
+        <div style="width:20%;" class="w-full max-w-sm p-4 bg-white border border-gray-200 rounded-lg shadow sm:p-6 md:p-8 dark:bg-gray-800 dark:border-gray-700">
+            <h3 class="text-xs text-gray-700 uppercase" style="border-bottom: 1pt solid black">Machine/Sensor Status</h3>
+            <ul class="my-4 space-y-3">
+                <div class="grid grid-cols-2 gap-3">
+                    <div style="padding:0; border-radius:20px" class="text-gray-900 inline-block align-middle">Needs Calibrating</div>
+                    <div class="status-box status-amber"></div>
+                    
+                    <div style="padding:0; border-radius:20px" class="text-gray-900 align-middle">Inactive</div>
+                    <div class="status-box status-red"></div>
+                    
+                    <div style="padding:0; border-radius:20px" class="text-gray-900 align-middle">Active</div>
+                    <div class="status-box status-green"></div>
+                </div>
+            </ul>
+        </div>
+    </center>
+
+    <center>
+        <div class="overflow-x-auto shadow-md sm:rounded-lg bg-gray-50" style="width:1000px; margin-top:50px">
+            <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+                <thead class="text-xs text-gray-700 uppercase dark:text-gray-400">
+                    <tr>
+                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-100" style="text-align:center">Process steps</th>
+                        <th class="px-6 py-3 bg-gray-100" style="text-align:center">Machines</th>
+                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800" style="text-align:center">Status</th>
+                        <th class="px-6 py-3 bg-gray-100" style="text-align:center">Sensors</th>
+                        <th class="px-6 py-3 bg-gray-50 dark:bg-gray-800" style="text-align:center">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Cut Plies -->
+                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <th scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap bg-gray-50 dark:text-white dark:bg-gray-800">Cut Plies</th>
+                        <td class="px-6 py-4 bg-gray-100 text-center">Ply Cutter</td>
+                        <td class="px-6 py-4 bg-gray-50">
+                            <div class="status-box status-green"></div>
+                        </td>
+                        <td class="px-6 py-4 bg-gray-100 text-center">None</td>
+                        <td class="px-6 py-4 bg-gray-50 text-center">
+                            <div class="status-box" style="background-color: transparent;">None</div>
+                        </td>
+                    </tr>
+
+                    <!-- Buffer (Ply Storage) -->
+                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <th scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap bg-gray-50 dark:text-white dark:bg-gray-800">Buffer (Ply Storage)</th>
+                        <td class="px-6 py-4 bg-gray-100 text-center">Preforming Cell</td>
+                        <td class="px-6 py-4 bg-gray-50">
+                            <div class="status-box status-green"></div>
+                        </td>
+						<td class="px-6 py-4 bg-gray-100 text-center">None</td>
+                        <td class="px-6 py-4 bg-gray-50 text-center">
+                            <div class="status-box" style="background-color: transparent;">None</div>
+                        </td>
+                    </tr>
+
+                    <!-- Create Blanks -->
+                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <th scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap bg-gray-50 dark:text-white dark:bg-gray-800">Create Blanks</th>
+                        <td class="px-6 py-4 bg-gray-100 text-center">Preforming Cell</td>
+                        <td class="px-6 py-4 bg-gray-50">
+                            <div class="status-box status-green"></div>
+                        </td>
+						<td class="px-6 py-4 bg-gray-100 text-center">None</td>
+                        <td class="px-6 py-4 bg-gray-50 text-center">
+                            <div class="status-box" style="background-color: transparent;">None</div>
+                        </td>
+                    </tr>
+
+                    <!-- Buffer (Blank Storage) -->
+                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <th scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap bg-gray-50 dark:text-white dark:bg-gray-800">Buffer (Blank Storage)</th>
+                        <td class="px-6 py-4 bg-gray-100 text-center">Preforming Cell</td>
+                        <td class="px-6 py-4 bg-gray-50">
+                            <div class="status-box status-green"></div>
+                        </td>
+                        <td class="px-6 py-4 bg-gray-100 text-center">None</td>
+                        <td class="px-6 py-4 bg-gray-50 text-center">
+                            <div class="status-box" style="background-color: transparent;">None</div>
+                        </td>
+                    </tr>
+
+                    <!-- Form Preform -->
+                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <th scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap bg-gray-50 dark:text-white dark:bg-gray-800">Form Preform</th>
+                        <td class="px-6 py-4 bg-gray-100 text-center">Preforming Cell</td>
+                        <td class="px-6 py-4 bg-gray-50">
+                            <div class="status-box status-green"></div>
+                        </td>
+                        <td class="px-6 py-4 bg-gray-100">
+                            <div class="sensor-name">Platten Down Switch</div>
+                            <div class="sensor-name">Shuttle Home Switch</div>
+                            <div class="sensor-name">Motor 1</div>
+                            <div class="sensor-name">Motor 3</div>
+                            <div class="sensor-name">Encoder 1</div>
+                            <div class="sensor-name">Encoder 2</div>
+                        </td>
+                        <td class="px-6 py-4 bg-gray-50">
+                            <div class="status-box status-green"></div>
+                            <div class="status-box status-green"></div>
+                            <div class="status-box status-green"></div>
+                            <div class="status-box status-green"></div>
+                            <div class="status-box status-green"></div>
+                            <div class="status-box status-green"></div>
+                        </td>
+                    </tr>
+
+                    <!-- Final Inspection -->
+                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                        <th scope="row" class="px-6 py-4 text-gray-900 whitespace-nowrap bg-gray-50 dark:text-white dark:bg-gray-800">Final Inspection</th>
+                        <td class="px-6 py-4 bg-gray-100 text-center">Preforming Cell</td>
+                        <td class="px-6 py-4 bg-gray-50">
+                            <div class="status-box status-green"></div>
+                        </td>
+                        <td class="px-6 py-4 bg-gray-100">
+                            <div class="sensor-name">Weigh Scale</div>
+                        </td>
+                        <td class="px-6 py-4 bg-gray-50">
+                            <div class="status-box status-green"></div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    
+    </center>
+</body>
+
+{% endblock %}

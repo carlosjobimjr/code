@@ -1,0 +1,567 @@
+{% extends 'Main/base.html' %}
+
+{% block title %}Edge Detection{% endblock %}
+
+{% block content %}
+<style type="text/css">
+.display-dxf-btn {
+    background-color: blueviolet;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.display-dxf-btn:hover {
+    background-color: #45a049;
+}
+
+.display-dxf-btn.active {
+    background-color: #357a38;
+}
+</style>
+
+<div class="container">
+    <h1>Edge Detection</h1>
+    <div class="parameters">
+        <div class="controls-group">
+            <button id="recalibrate" class="recalibrate-btn">Recalibrate</button>
+            <div class="file-upload">
+                <label for="dxf-file" class="upload-btn">Upload/choose dxf</label>
+                <input type="file" id="dxf-file" accept=".dxf" style="display: none;">
+                <span id="file-name">{% if uploaded_file_name %}{{ uploaded_file_name }}{% else %}No file selected{% endif %}</span>
+            </div>
+            <div class="tolerance">
+                <label for="tolerance">Tolerance:</label>
+                <input type="number" id="tolerance" step="0.1" value="1.0" min="0.1" max="10">
+            </div>
+            <div class="material-type">
+                <label for="material-type">Material type:</label>
+                <select id="material-type">
+                    <option value="carbon">Carbon</option>
+                    <option value="glass">Glass</option>
+                    <option value="glass">DryRun</option>
+                    <option value="glass">HPLE</option>
+                </select>
+            </div>
+        </div>
+        <button id="run" class="run-btn">RUN</button>
+    </div>
+
+    <hr class="separator">
+
+<!-- In your edge_detection.html template -->
+<div class="results">
+    <h2>Edge detection results</h2>
+    <div class="result-container">
+        <div class="file-switcher">
+            <button id="file-dxf">File DXF</button>
+            <button id="file-original">Original Image</button>
+            <button id="file-ed" class="active">File ED</button>
+        </div>
+        <div class="result-display">
+            <div id="edge-detection-result">
+                <!-- SVG for DXF display -->
+                <svg id="svg-display" width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+                    <g id="file-dxf-view" style="display: none;"></g>
+                </svg>
+                
+                <!-- File Original Image view -->
+                {% if original_image %}
+                <img id="file-original-view" 
+                     src="data:image/jpeg;base64,{{ original_image }}"
+                     style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;" 
+                     alt="Original Image">
+                {% endif %}
+                
+                <!-- File ED view -->
+                {% if ed_image %}
+                <img id="file-ed-view" 
+                     src="data:image/jpeg;base64,{{ ed_image }}"
+                     style="display: none; max-width: 100%; max-height: 100%; object-fit: contain;" 
+                     alt="ED Result">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+<style>
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    min-height: 100vh;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+}
+
+.parameters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.controls-group {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.recalibrate-btn {
+    background-color: #4a4a4a;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#file-name, #original-file-name {
+    margin-left: 10px;
+    font-style: italic;
+}
+
+.run-btn {
+    background-color: #90EE90;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.separator {
+    border: none;
+    border-top: 1px solid black;
+    margin: 20px 0;
+}
+
+.results {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.result-container {
+    display: flex;
+    gap: 20px;
+    flex-grow: 1;
+}
+.result-display {
+    flex-grow: 1;
+    position: relative;
+    margin-right: 20%;  
+    transition: margin-right 0.3s ease;  
+}
+.file-switcher {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.file-switcher button {
+    padding: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.file-switcher button.active {
+    background-color: #e0e0e0;
+    font-weight: bold;
+}
+
+
+#edge-detection-result {
+    border: 2px solid #4CAF50;
+    padding: 10px;
+    height: 100%;
+    box-sizing: border-box;
+    position: relative;
+}
+
+#svg-display, #file-original-view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+input, select {
+    padding: 5px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+}
+</style>
+
+<!-- DXF handling and view management -->
+<script type="text/javascript">
+    window.onload = function() {
+        if (typeof DxfParser === 'undefined') {
+            loadDxfParser();
+        }
+        loadStoredDXFData();
+    };
+    
+    function loadDxfParser() {
+        const script = document.createElement('script');
+        script.src = 'https://unpkg.com/dxf-parser@1.1.2/dist/dxf-parser.min.js';
+        script.onload = () => console.log('[DXF] Parser loaded');
+        script.onerror = () => console.error('[DXF] Failed to load parser');
+        document.head.appendChild(script);
+    }
+    
+    const dxfFileInput = document.getElementById('dxf-file');
+    const fileNameSpan = document.getElementById('file-name');
+    let uploadedDxfContent = null;
+    let dxfShapes = [];
+    
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.className = 'loading-overlay';
+    loadingOverlay.innerHTML = `
+        <div style="text-align: center;">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Processing...</div>
+        </div>
+    `;
+    
+    dxfFileInput.addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        fileNameSpan.textContent = file.name;
+        uploadedDxfContent = file;
+        console.log(`[Upload] ${file.name} selected. Tolerance: ${document.getElementById('tolerance').value}mm`);
+
+        try {
+            const formData = new FormData();
+            formData.append('dxf_file', file);
+
+            const response = await fetch('/edge_detection/process_dxf/', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            const data = await response.json();
+            if (data.status === 'success') {
+                dxfShapes = data.shapes;
+                console.log(`[DXF] Successfully processed ${file.name} with ${dxfShapes.length} shapes`);
+                storeDXFData(dxfShapes, file.name);
+                if (document.getElementById('file-dxf-view').style.display === 'block') {
+                    renderDxfShapes();
+                }
+            }
+        } catch (error) {
+            console.error('[Upload] Error:', error);
+            alert(`Error uploading file: ${error.message}`);
+        }
+    });
+    function processEntity(entity) {
+        console.log('[DXF] Processing entity:', entity.type);
+        switch (entity.type) {
+            case 'LINE':
+                return {
+                    type: 'line',
+                    points: [
+                        [entity.start.x, entity.start.y],
+                        [entity.end.x, entity.end.y]
+                    ]
+                };
+            case 'LWPOLYLINE':
+                return {
+                    type: 'polyline',
+                    points: entity.vertices.map(v => [v.x, v.y]),
+                    closed: entity.closed
+                };
+            case 'CIRCLE':
+                return {
+                    type: 'circle',
+                    points: generateCirclePoints(
+                        entity.center.x,
+                        entity.center.y,
+                        entity.radius
+                    )
+                };
+            case 'ARC':
+                return {
+                    type: 'arc',
+                    points: generateArcPoints(
+                        entity.center.x,
+                        entity.center.y,
+                        entity.radius,
+                        entity.startAngle,
+                        entity.endAngle
+                    )
+                };
+            default:
+                console.log('[DXF] Unhandled entity type:', entity.type);
+                return null;
+        }
+    }
+    
+    function generateCirclePoints(centerX, centerY, radius, segments = 32) {
+        return Array.from({ length: segments + 1 }, (_, i) => {
+            const angle = (i / segments) * 2 * Math.PI;
+            return [
+                centerX + radius * Math.cos(angle),
+                centerY + radius * Math.sin(angle)
+            ];
+        });
+    }
+    
+    function generateArcPoints(centerX, centerY, radius, startAngle, endAngle, segments = 32) {
+        const points = [];
+        const startRad = (startAngle * Math.PI) / 180;
+        const endRad = (endAngle * Math.PI) / 180;
+        const angleStep = (endRad - startRad) / segments;
+    
+        for (let i = 0; i <= segments; i++) {
+            const angle = startRad + i * angleStep;
+            points.push([
+                centerX + radius * Math.cos(angle),
+                centerY + radius * Math.sin(angle)
+            ]);
+        }
+        return points;
+    }
+    
+    function switchView(viewType) {
+        const views = {
+            'dxf': document.getElementById('file-dxf-view'),
+            'original': document.getElementById('file-original-view'),
+            'ed': document.getElementById('file-ed-view')
+        };
+        
+        Object.entries(views).forEach(([type, view]) => {
+            if (view) view.style.display = type === viewType ? 'block' : 'none';
+        });
+    }
+    
+    document.getElementById('file-dxf').addEventListener('click', function() {
+        switchView('dxf');
+        updateButtonStates(this);
+        if (dxfShapes.length > 0) renderDxfShapes();
+    });
+    
+    document.getElementById('file-original').addEventListener('click', function() {
+        switchView('original');
+        updateButtonStates(this);
+    });
+    
+    document.getElementById('file-ed').addEventListener('click', function() {
+        switchView('ed');
+        updateButtonStates(this);
+    });
+    
+    function renderDxfShapes() {
+        const dxfView = document.getElementById('file-dxf-view');
+        if (!dxfView || dxfShapes.length === 0) return;
+    
+        dxfView.innerHTML = '';
+        const bounds = calculateBounds();
+        updateViewBox(bounds);
+    
+        dxfShapes.forEach((shape, index) => {
+            const element = createSvgElement(shape);
+            if (element) dxfView.appendChild(element);
+        });
+    }
+    
+    function calculateBounds() {
+        let minX = Infinity, minY = Infinity;
+        let maxX = -Infinity, maxY = -Infinity;
+    
+        dxfShapes.forEach(shape => {
+            shape.points.forEach(point => {
+                minX = Math.min(minX, point[0]);
+                minY = Math.min(minY, point[1]);
+                maxX = Math.max(maxX, point[0]);
+                maxY = Math.max(maxY, point[1]);
+            });
+        });
+    
+        const padding = 10;
+        return {
+            minX: minX - padding,
+            minY: minY - padding,
+            width: maxX - minX + 2 * padding,
+            height: maxY - minY + 2 * padding
+        };
+    }
+    
+    function createSvgElement(shape) {
+        const element = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        const pathData = shape.points.map((point, index) => 
+            `${index === 0 ? 'M' : 'L'}${point[0]},${point[1]}`
+        ).join(' ') + (shape.closed ? 'Z' : '');
+    
+        element.setAttribute('d', pathData);
+        element.setAttribute('stroke', '#000000');
+        element.setAttribute('stroke-width', '1');
+        element.setAttribute('fill', 'none');
+        return element;
+    }
+    
+    function updateViewBox(bounds) {
+        const svg = document.getElementById('svg-display');
+        if (svg) {
+            svg.setAttribute('viewBox',
+                `${bounds.minX} ${bounds.minY} ${bounds.width} ${bounds.height}`);
+        }
+    }
+    
+    function updateButtonStates(activeButton) {
+        document.querySelectorAll('.file-switcher button')
+            .forEach(btn => btn.classList.toggle('active', btn === activeButton));
+    }
+    
+    function storeDXFData(shapes, fileName) {
+        localStorage.setItem('currentDXFShapes', JSON.stringify(shapes));
+        localStorage.setItem('currentDXFFileName', fileName);
+    }
+    
+    function loadStoredDXFData() {
+        const shapes = JSON.parse(localStorage.getItem('currentDXFShapes'));
+        const fileName = localStorage.getItem('currentDXFFileName');
+        if (shapes && fileName) {
+            dxfShapes = shapes;
+            if (fileNameSpan) fileNameSpan.textContent = fileName;
+            if (document.getElementById('file-dxf-view').style.display === 'block') {
+                renderDxfShapes();
+            }
+        }
+    }
+    </script>
+
+<!-- Edge Detection WebSocket Communication -->
+<script type="text/javascript">
+    let edgeDetectionSocket;
+    
+    function initializeEdgeDetection() {
+        const wsUrl = `ws://${window.location.host}/ws/`;
+        edgeDetectionSocket = new WebSocket(wsUrl);
+    
+        edgeDetectionSocket.onopen = function() {
+            console.log('[EdgeDetection] WebSocket connected to Django backend');
+            const statusIndicator = document.createElement('div');
+            statusIndicator.id = 'ed-status';
+            statusIndicator.style.cssText = 'position: fixed; top: 10px; right: 10px; padding: 5px 10px; background-color: #4CAF50; color: white; border-radius: 3px;';
+            statusIndicator.textContent = 'Connected to Edge Detection Service';
+            document.body.appendChild(statusIndicator);
+        };
+    
+        edgeDetectionSocket.onclose = function() {
+            console.log('[EdgeDetection] WebSocket disconnected');
+            const statusIndicator = document.getElementById('ed-status');
+            if (statusIndicator) {
+                statusIndicator.style.backgroundColor = '#f44336';
+                statusIndicator.textContent = 'Disconnected from Edge Detection Service';
+            }
+            setTimeout(initializeEdgeDetection, 3000);
+        };
+    
+        edgeDetectionSocket.onerror = function(error) {
+            console.error('[EdgeDetection] WebSocket error:', error);
+        };
+    
+        edgeDetectionSocket.onmessage = function(e) {
+            try {
+                const data = JSON.parse(e.data);
+                console.log('[EdgeDetection] Received:', data);
+                
+                if (data.type === 'image_update') {
+                    updateImage(data);
+                } else if (data.type === 'error') {
+                    console.error('[EdgeDetection] Error:', data.message);
+                    alert('Edge Detection Error: ' + data.message);
+                } else if (data.type === 'status') {
+                    console.log('[EdgeDetection] Status:', data.message);
+                }
+            } catch (error) {
+                console.error('[EdgeDetection] Message parsing error:', error);
+            }
+        };
+    }
+    
+    document.addEventListener('DOMContentLoaded', initializeEdgeDetection);
+    
+    document.getElementById('run').addEventListener('click', async function() {
+        if (!edgeDetectionSocket || edgeDetectionSocket.readyState !== WebSocket.OPEN) {
+            alert('Edge Detection service not connected. Please wait or refresh the page.');
+            return;
+        }
+    
+        const dxfFile = uploadedDxfContent;
+        const tolerance = document.getElementById('tolerance').value;
+        const materialType = document.getElementById('material-type').value;
+    
+        if (!dxfFile) {
+            alert('Please select a DXF file first');
+            return;
+        }
+    
+        if (!tolerance) {
+            alert('Please enter a tolerance value');
+            return;
+        }
+    
+        try {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                console.log(`[EdgeDetection] Running detection on ${dxfFile.name} with tolerance: ${tolerance}mm`);
+                edgeDetectionSocket.send(JSON.stringify({
+                    'command': 'run_detection',
+                    'dxf_content': e.target.result,
+                    'tolerance': parseFloat(tolerance),
+                    'material_type': materialType
+                }));
+            };
+            reader.readAsText(dxfFile);
+        } catch (error) {
+            console.error('[EdgeDetection] Error:', error);
+            alert('Error processing request: ' + error.message);
+        }
+    });
+    
+    function updateImage(data) {
+    if (data.image_type === 'original') {
+        const img = document.getElementById('file-original-view');
+        if (img) {
+            img.src = `data:image/jpeg;base64,${data.image_data}`;
+            console.log('[EdgeDetection] Original image updated');
+        }
+    } else if (data.image_type === 'ed') {
+        const img = document.getElementById('file-ed-view');
+        if (img) {
+            img.src = `data:image/jpeg;base64,${data.image_data}`;
+            console.log('[EdgeDetection] ED image updated');
+        }
+    }
+}
+    </script>
+
+
+
+{% endblock %}
